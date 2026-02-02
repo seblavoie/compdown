@@ -14,7 +14,7 @@ import {
 import { closeBrackets, closeBracketsKeymap } from "@codemirror/autocomplete";
 import type { ValidationError } from "../schema/validation";
 
-const SAMPLE_YAML = `comps:
+const SAMPLE_YAML = `compositions:
   - name: My Comp
     width: 1920
     height: 1080

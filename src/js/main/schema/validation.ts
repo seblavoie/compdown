@@ -21,7 +21,7 @@ export interface ValidationResult {
 function findLineForPath(yamlText: string, path: (string | number)[]): number | null {
   const lines = yamlText.split("\n");
 
-  // Build a search strategy: for a path like ["comps", 0, "layers", 1, "name"],
+  // Build a search strategy: for a path like ["compositions", 0, "layers", 1, "name"],
   // we look for the key of the last meaningful string segment
   let lastKey: string | null = null;
   let arrayIndex: number | null = null;

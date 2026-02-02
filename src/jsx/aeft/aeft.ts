@@ -17,7 +17,7 @@ export const createFromDocument = (doc: {
     sequence?: boolean;
     folder?: string;
   }>;
-  comps?: Array<{
+  compositions?: Array<{
     name: string;
     width: number;
     height: number;
@@ -28,13 +28,13 @@ export const createFromDocument = (doc: {
     folder?: string;
     layers?: any[];
   }>;
-}): { created: { folders: number; files: number; comps: number; layers: number } } => {
+}): { created: { folders: number; files: number; compositions: number; layers: number } } => {
   app.beginUndoGroup("Compdown: Create");
 
   var folderMap: { [name: string]: FolderItem } = {};
   var fileMap: { [id: string]: FootageItem } = {};
   var compMap: { [name: string]: CompItem } = {};
-  var stats = { folders: 0, files: 0, comps: 0, layers: 0 };
+  var stats = { folders: 0, files: 0, compositions: 0, layers: 0 };
 
   // 1. Folders
   if (doc.folders && doc.folders.length > 0) {
@@ -49,13 +49,13 @@ export const createFromDocument = (doc: {
   }
 
   // 3. Compositions
-  if (doc.comps && doc.comps.length > 0) {
-    compMap = createComps(doc.comps, folderMap);
-    stats.comps = doc.comps.length;
+  if (doc.compositions && doc.compositions.length > 0) {
+    compMap = createComps(doc.compositions, folderMap);
+    stats.compositions = doc.compositions.length;
 
     // 4. Layers (per comp)
-    for (var i = 0; i < doc.comps.length; i++) {
-      var compDef = doc.comps[i];
+    for (var i = 0; i < doc.compositions.length; i++) {
+      var compDef = doc.compositions[i];
       if (compDef.layers && compDef.layers.length > 0) {
         var comp = compMap[compDef.name];
         createLayers(comp, compDef.layers, fileMap, compMap);
@@ -75,7 +75,7 @@ export const createFromDocument = (doc: {
  */
 export const generateFromComp = (
   selectionOnly: boolean
-): { files: object[]; comps: object[] } => {
+): { files: object[]; compositions: object[] } => {
   var comp = getActiveComp();
   if (!comp) {
     throw new Error("No active composition");
@@ -86,6 +86,6 @@ export const generateFromComp = (
 
   return {
     files: files,
-    comps: [compData],
+    compositions: [compData],
   };
 };

@@ -49,7 +49,7 @@ When creating AE objects from YAML: **folders -> files -> compositions -> layers
 
 ## YAML Schema (v1)
 
-Four top-level keys: `folders`, `files`, `comps` (with nested `layers`). Schemas defined in `src/js/main/schema/types.ts` using Zod. Key types:
+Four top-level keys: `folders`, `files`, `compositions` (with nested `layers`). Schemas defined in `src/js/main/schema/types.ts` using Zod. Key types:
 
 - **Layer types**: `solid`, `null`, `adjustment`, `text`, plus file-based (via `file` key referencing a file `id`), plus comp-in-comp (via `comp` key referencing another comp's `name`)
 - **Layer source keys**: exactly one of `type`, `file`, or `comp` must be set per layer

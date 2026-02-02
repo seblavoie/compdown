@@ -46,7 +46,7 @@ export const App = () => {
       const response = await createInAE(result.data!);
       const stats = response.created;
       const parts: string[] = [];
-      if (stats.comps) parts.push(`${stats.comps} comp(s)`);
+      if (stats.compositions) parts.push(`${stats.compositions} comp(s)`);
       if (stats.layers) parts.push(`${stats.layers} layer(s)`);
       if (stats.files) parts.push(`${stats.files} file(s)`);
       if (stats.folders) parts.push(`${stats.folders} folder(s)`);

@@ -195,7 +195,7 @@ export const CompdownDocumentSchema = z
   .object({
     folders: z.array(FolderSchema).optional(),
     files: z.array(FileSchema).optional(),
-    comps: z.array(CompSchema).optional(),
+    compositions: z.array(CompSchema).optional(),
   })
   .refine(
     (doc) => {
@@ -203,10 +203,10 @@ export const CompdownDocumentSchema = z
       return (
         (doc.folders && doc.folders.length > 0) ||
         (doc.files && doc.files.length > 0) ||
-        (doc.comps && doc.comps.length > 0)
+        (doc.compositions && doc.compositions.length > 0)
       );
     },
-    { message: "Document must contain at least one of: folders, files, comps" }
+    { message: "Document must contain at least one of: folders, files, compositions" }
   );
 
 export type CompdownDocument = z.infer<typeof CompdownDocumentSchema>;

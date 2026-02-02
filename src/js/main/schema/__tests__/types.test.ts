@@ -545,9 +545,9 @@ describe("FolderSchema", () => {
 // ---------------------------------------------------------------------------
 
 describe("CompdownDocumentSchema", () => {
-  it("accepts a document with only comps", () => {
+  it("accepts a document with only compositions", () => {
     const result = CompdownDocumentSchema.safeParse({
-      comps: [{ name: "Main" }],
+      compositions: [{ name: "Main" }],
     });
     expect(result.success).toBe(true);
   });
@@ -570,7 +570,7 @@ describe("CompdownDocumentSchema", () => {
     const result = CompdownDocumentSchema.safeParse({
       folders: [{ name: "Assets" }],
       files: [{ id: "f1", path: "/foo.mov" }],
-      comps: [{ name: "Main" }],
+      compositions: [{ name: "Main" }],
     });
     expect(result.success).toBe(true);
   });
@@ -583,16 +583,16 @@ describe("CompdownDocumentSchema", () => {
 
   it("rejects a document with empty arrays", () => {
     const result = CompdownDocumentSchema.safeParse({
-      comps: [],
+      compositions: [],
       files: [],
       folders: [],
     });
     expect(result.success).toBe(false);
   });
 
-  it("rejects a document with only invalid comps", () => {
+  it("rejects a document with only invalid compositions", () => {
     const result = CompdownDocumentSchema.safeParse({
-      comps: [{ width: 1920 }], // missing name
+      compositions: [{ width: 1920 }], // missing name
     });
     expect(result.success).toBe(false);
   });

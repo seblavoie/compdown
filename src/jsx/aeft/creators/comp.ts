@@ -3,7 +3,7 @@
  * Returns a map of comp name -> CompItem for layer creation.
  */
 export const createComps = (
-  comps: Array<{
+  compositions: Array<{
     name: string;
     width: number;
     height: number;
@@ -17,8 +17,8 @@ export const createComps = (
 ): { [name: string]: CompItem } => {
   var compMap: { [name: string]: CompItem } = {};
 
-  for (var i = 0; i < comps.length; i++) {
-    var compDef = comps[i];
+  for (var i = 0; i < compositions.length; i++) {
+    var compDef = compositions[i];
     var newComp = app.project.items.addComp(
       compDef.name,
       compDef.width,

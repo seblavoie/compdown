@@ -8,24 +8,24 @@ import { validateYaml } from "../validation";
 describe("validateYaml", () => {
   it("returns success for a valid minimal document", () => {
     const yaml = `
-comps:
+compositions:
   - name: Main
 `;
     const result = validateYaml(yaml);
     expect(result.success).toBe(true);
     expect(result.errors).toHaveLength(0);
     expect(result.data).toBeDefined();
-    expect(result.data!.comps![0].name).toBe("Main");
+    expect(result.data!.compositions![0].name).toBe("Main");
   });
 
   it("applies comp defaults in parsed data", () => {
     const yaml = `
-comps:
+compositions:
   - name: Default Comp
 `;
     const result = validateYaml(yaml);
     expect(result.success).toBe(true);
-    expect(result.data!.comps![0]).toMatchObject({
+    expect(result.data!.compositions![0]).toMatchObject({
       width: 1920,
       height: 1080,
       framerate: 30,
@@ -33,14 +33,14 @@ comps:
     });
   });
 
-  it("parses a full document with folders, files, and comps", () => {
+  it("parses a full document with folders, files, and compositions", () => {
     const yaml = `
 folders:
   - name: Assets
 files:
   - id: bg
     path: /footage/bg.mov
-comps:
+compositions:
   - name: Main
     layers:
       - name: Background
@@ -53,7 +53,7 @@ comps:
     expect(result.success).toBe(true);
     expect(result.data!.folders).toHaveLength(1);
     expect(result.data!.files).toHaveLength(1);
-    expect(result.data!.comps![0].layers).toHaveLength(2);
+    expect(result.data!.compositions![0].layers).toHaveLength(2);
   });
 
   // ---------------------------------------------------------------------------
@@ -62,7 +62,7 @@ comps:
 
   it("returns an error for invalid YAML syntax", () => {
     const yaml = `
-comps:
+compositions:
   - name: Main
     layers:
   bad indentation
@@ -104,7 +104,7 @@ comps:
 
   it("reports a schema error for missing comp name", () => {
     const yaml = `
-comps:
+compositions:
   - width: 1920
 `;
     const result = validateYaml(yaml);
@@ -114,7 +114,7 @@ comps:
 
   it("reports multiple errors", () => {
     const yaml = `
-comps:
+compositions:
   - name: Comp1
     layers:
       - name: Bad Solid
@@ -130,7 +130,7 @@ comps:
 
   it("maps error paths to strings", () => {
     const yaml = `
-comps:
+compositions:
   - name: C
     layers:
       - name: Orphan
@@ -146,7 +146,7 @@ comps:
   // ---------------------------------------------------------------------------
 
   it("maps errors to approximate line numbers", () => {
-    const yaml = `comps:
+    const yaml = `compositions:
   - name: Comp
     layers:
       - name: Solid
@@ -163,7 +163,7 @@ comps:
   it("finds line numbers for top-level keys", () => {
     const yaml = `folders:
   - name: F1
-comps:
+compositions:
   - width: 100`;
     const result = validateYaml(yaml);
     expect(result.success).toBe(false);
@@ -180,7 +180,7 @@ comps:
 
   it("rejects a document with no populated sections", () => {
     const yaml = `
-comps: []
+compositions: []
 files: []
 `;
     const result = validateYaml(yaml);
@@ -208,7 +208,7 @@ files:
   - id: 2
     path: /footage/bg.png
 
-comps:
+compositions:
   - name: Main Comp
     width: 1920
     height: 1080
@@ -242,8 +242,8 @@ comps:
     expect(result.success).toBe(true);
     expect(result.data!.folders).toHaveLength(2);
     expect(result.data!.files).toHaveLength(2);
-    expect(result.data!.comps![0].layers).toHaveLength(5);
-    expect(result.data!.comps![0].framerate).toBe(24);
+    expect(result.data!.compositions![0].layers).toHaveLength(5);
+    expect(result.data!.compositions![0].framerate).toBe(24);
   });
 
   // ---------------------------------------------------------------------------
@@ -252,7 +252,7 @@ comps:
 
   it("validates a document with comp-in-comp layer", () => {
     const yaml = `
-comps:
+compositions:
   - name: Inner Comp
     layers:
       - name: BG
@@ -265,8 +265,8 @@ comps:
 `;
     const result = validateYaml(yaml);
     expect(result.success).toBe(true);
-    expect(result.data!.comps).toHaveLength(2);
-    const outerLayers = result.data!.comps![1].layers!;
+    expect(result.data!.compositions).toHaveLength(2);
+    const outerLayers = result.data!.compositions![1].layers!;
     expect(outerLayers[0].comp).toBe("Inner Comp");
     expect(outerLayers[0].file).toBeUndefined();
     expect(outerLayers[0].type).toBeUndefined();
@@ -274,7 +274,7 @@ comps:
 
   it("rejects a layer with both comp and file in YAML", () => {
     const yaml = `
-comps:
+compositions:
   - name: Bad Comp
     layers:
       - name: Conflict
@@ -294,7 +294,7 @@ comps:
 
   it("validates a document with keyframed transforms", () => {
     const yaml = `
-comps:
+compositions:
   - name: Animated
     layers:
       - name: Mover
@@ -318,7 +318,7 @@ comps:
 `;
     const result = validateYaml(yaml);
     expect(result.success).toBe(true);
-    const transform = result.data!.comps![0].layers![0].transform!;
+    const transform = result.data!.compositions![0].layers![0].transform!;
     expect(Array.isArray(transform.position)).toBe(true);
     expect(Array.isArray(transform.opacity)).toBe(true);
     expect(Array.isArray(transform.rotation)).toBe(true);
@@ -326,7 +326,7 @@ comps:
 
   it("validates mixed static + keyframed transforms in YAML", () => {
     const yaml = `
-comps:
+compositions:
   - name: Mixed
     layers:
       - name: Layer
@@ -341,14 +341,14 @@ comps:
 `;
     const result = validateYaml(yaml);
     expect(result.success).toBe(true);
-    const transform = result.data!.comps![0].layers![0].transform!;
+    const transform = result.data!.compositions![0].layers![0].transform!;
     expect(transform.rotation).toBe(45);
     expect(Array.isArray(transform.position)).toBe(true);
   });
 
   it("rejects keyframed opacity out of range in YAML", () => {
     const yaml = `
-comps:
+compositions:
   - name: Bad Opacity
     layers:
       - name: Layer

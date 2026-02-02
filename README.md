@@ -49,12 +49,12 @@ npx tsc -p tsconfig-build.json --noEmit
 
 ## YAML Schema
 
-A Compdown document has three optional top-level keys: `folders`, `files`, and `comps`. At least one must be present.
+A Compdown document has three optional top-level keys: `folders`, `files`, and `compositions`. At least one must be present.
 
 ### Minimal example
 
 ```yaml
-comps:
+compositions:
   - name: My Comp
     layers:
       - name: background
@@ -84,7 +84,7 @@ files:
     path: /path/to/sequence/frame_[0001-0100].png
     sequence: true
 
-comps:
+compositions:
   - name: Lower Third
     width: 1920
     height: 200
@@ -154,7 +154,7 @@ comps:
 | sequence | boolean          | no       | Import as image sequence       |
 | folder   | string           | no       | Target project folder          |
 
-#### `comps`
+#### `compositions`
 
 | Property    | Type   | Required | Default    | Description              |
 | ----------- | ------ | -------- | ---------- | ------------------------ |
