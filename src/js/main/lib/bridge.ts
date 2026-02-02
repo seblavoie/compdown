@@ -1,10 +1,10 @@
 import { evalTS } from "../../lib/utils/bolt";
-import type { RehyleDocument } from "../schema/types";
+import type { CompdownDocument } from "../schema/types";
 
 /**
- * Send a validated Rehyle document to ExtendScript for creation in AE.
+ * Send a validated Compdown document to ExtendScript for creation in AE.
  */
-export async function createInAE(doc: RehyleDocument) {
+export async function createInAE(doc: CompdownDocument) {
   return evalTS("createFromDocument", doc as any);
 }
 

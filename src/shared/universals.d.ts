@@ -2,12 +2,12 @@
  * Event types for ExtendScript <-> CEP panel communication
  */
 export type EventTS = {
-  rehyleProgress: {
+  compdownProgress: {
     step: string;
     current: number;
     total: number;
   };
-  rehyleError: {
+  compdownError: {
     message: string;
     step: string;
   };

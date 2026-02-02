@@ -157,7 +157,7 @@ export type FolderItem = z.infer<typeof FolderSchema>;
 
 // --- Root document ---
 
-export const RehyleDocumentSchema = z
+export const CompdownDocumentSchema = z
   .object({
     folders: z.array(FolderSchema).optional(),
     files: z.array(FileSchema).optional(),
@@ -175,4 +175,4 @@ export const RehyleDocumentSchema = z
     { message: "Document must contain at least one of: folders, files, comps" }
   );
 
-export type RehyleDocument = z.infer<typeof RehyleDocumentSchema>;
+export type CompdownDocument = z.infer<typeof CompdownDocumentSchema>;

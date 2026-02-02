@@ -1,6 +1,6 @@
 import yaml from "js-yaml";
 import { ZodError } from "zod";
-import { RehyleDocumentSchema, type RehyleDocument } from "./types";
+import { CompdownDocumentSchema, type CompdownDocument } from "./types";
 
 export interface ValidationError {
   line: number | null;
@@ -10,7 +10,7 @@ export interface ValidationError {
 
 export interface ValidationResult {
   success: boolean;
-  data?: RehyleDocument;
+  data?: CompdownDocument;
   errors: ValidationError[];
 }
 
@@ -60,7 +60,7 @@ function findLineForPath(yamlText: string, path: (string | number)[]): number | 
 }
 
 /**
- * Parse and validate a YAML string against the Rehyle schema.
+ * Parse and validate a YAML string against the Compdown schema.
  */
 export function validateYaml(yamlText: string): ValidationResult {
   // Step 1: Parse YAML
@@ -89,7 +89,7 @@ export function validateYaml(yamlText: string): ValidationResult {
   }
 
   // Step 2: Validate with Zod
-  const result = RehyleDocumentSchema.safeParse(parsed);
+  const result = CompdownDocumentSchema.safeParse(parsed);
 
   if (result.success) {
     return { success: true, data: result.data, errors: [] };

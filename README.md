@@ -1,4 +1,4 @@
-# Rehyle
+# Compdown
 
 An Adobe After Effects extension that converts YAML into AE compositions and vice versa.
 
@@ -23,7 +23,7 @@ Write declarative YAML to describe compositions, layers, folders, and footage â€
 
 2. Enable unsigned extensions in After Effects (use [aescripts ZXP Installer](https://aescripts.com/learn/zxp-installer/) > Settings > Debug > Enable Debugging, or set the `PlayerDebugMode` registry/plist flag).
 
-3. Restart After Effects. The panel appears under **Window > Extensions > Rehyle**.
+3. Restart After Effects. The panel appears under **Window > Extensions > Compdown**.
 
 For distribution as a signed ZXP:
 
@@ -47,7 +47,7 @@ npx tsc -p tsconfig-build.json --noEmit
 
 ## YAML Schema
 
-A Rehyle document has three optional top-level keys: `folders`, `files`, and `comps`. At least one must be present.
+A Compdown document has three optional top-level keys: `folders`, `files`, and `comps`. At least one must be present.
 
 ### Minimal example
 

@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Rehyle is an Adobe After Effects CEP extension that converts YAML into AE compositions (and vice versa). Built on Bolt CEP with React, TypeScript, CodeMirror 6, Zod, and js-yaml.
+Compdown is an Adobe After Effects CEP extension that converts YAML into AE compositions (and vice versa). Built on Bolt CEP with React, TypeScript, CodeMirror 6, Zod, and js-yaml.
 
 ## Build Commands
 
@@ -67,7 +67,7 @@ Code in `src/jsx/` compiles to ES3. Restrictions:
 
 ## Key Configuration
 
-- `cep.config.ts` — Extension ID (`com.rehyle.cep`), panel config, host apps (AEFT only)
+- `cep.config.ts` — Extension ID (`com.compdown.cep`), panel config, host apps (AEFT only)
 - `vite.config.ts` — Vite + React plugin, ExtendScript ES3 rollup build
 - `tsconfig-build.json` — Used for builds; remaps `@esTypes` to stub types
 - `src/shared/shared.ts` — Namespace derived from `cep.config.ts` id
@@ -77,4 +77,4 @@ Code in `src/jsx/` compiles to ES3. Restrictions:
 
 1. Enable PlayerDebugMode (aescripts ZXP Installer > Settings > Debug > Enable Debugging)
 2. `npm run build` then restart AE, or `npm run dev` for HMR
-3. Panel appears under Window > Extensions > Rehyle
+3. Panel appears under Window > Extensions > Compdown

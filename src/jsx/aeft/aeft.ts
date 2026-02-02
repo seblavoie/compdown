@@ -6,7 +6,7 @@ import { createLayers } from "./creators/layer";
 import { readComp, collectFiles } from "./readers/comp";
 
 /**
- * Main entry point: create AE objects from a parsed Rehyle document.
+ * Main entry point: create AE objects from a parsed Compdown document.
  * Called from the panel via evalTS with a JSON object.
  */
 export const createFromDocument = (doc: {
@@ -29,7 +29,7 @@ export const createFromDocument = (doc: {
     layers?: any[];
   }>;
 }): { created: { folders: number; files: number; comps: number; layers: number } } => {
-  app.beginUndoGroup("Rehyle: Create");
+  app.beginUndoGroup("Compdown: Create");
 
   var folderMap: { [name: string]: FolderItem } = {};
   var fileMap: { [id: string]: FootageItem } = {};
@@ -70,7 +70,7 @@ export const createFromDocument = (doc: {
 };
 
 /**
- * Generate a Rehyle document from the active composition.
+ * Generate a Compdown document from the active composition.
  * selectionOnly: if true, only reads selected layers.
  */
 export const generateFromComp = (
