@@ -8,6 +8,8 @@ Write declarative YAML to describe compositions, layers, folders, and footage â€
 
 - **YAML-to-AE**: Define compositions, layers, folders, and file imports in YAML and create them in After Effects
 - **AE-to-YAML**: Generate YAML from an existing composition (full comp or selected layers)
+- **Comp-in-comp nesting**: Reference other compositions as layers using the `comp` key
+- **Keyframe animation**: Animate transform properties with keyframe arrays
 - **Built-in editor**: CodeMirror 6 with YAML syntax highlighting, code folding, and real-time schema validation
 - **Schema validation**: Errors display inline in the editor with line numbers before anything is sent to AE
 - **Load from file**: Import `.yaml` / `.yml` files from disk
@@ -83,6 +85,24 @@ files:
     sequence: true
 
 comps:
+  - name: Lower Third
+    width: 1920
+    height: 200
+    duration: 5
+    layers:
+      - name: bar
+        type: solid
+        color: "1a1a2e"
+      - name: label
+        type: text
+        text: Breaking News
+        transform:
+          opacity:
+            - time: 0
+              value: 0
+            - time: 1
+              value: 100
+
   - name: Main Comp
     width: 1920
     height: 1080
@@ -98,6 +118,14 @@ comps:
           position: [960, 540]
           scale: [100, 100]
           opacity: 80
+      - name: lower third
+        comp: Lower Third
+        transform:
+          position:
+            - time: 2
+              value: [960, 1280]
+            - time: 3
+              value: [960, 980]
       - name: adjustment
         type: adjustment
         blendingMode: softLight
@@ -142,13 +170,14 @@ comps:
 
 #### `layers`
 
-Each layer must have either `type` or `file` (not both).
+Each layer must have exactly one of `type`, `file`, or `comp`.
 
 | Property     | Type             | Required                    | Description                        |
 | ------------ | ---------------- | --------------------------- | ---------------------------------- |
 | name         | string           | yes                         | Layer name                         |
-| type         | string           | if no `file`                | `solid`, `null`, `adjustment`, `text` |
-| file         | string \| number | if no `type`                | References a file `id`             |
+| type         | string           | if no `file`/`comp`         | `solid`, `null`, `adjustment`, `text` |
+| file         | string \| number | if no `type`/`comp`         | References a file `id`             |
+| comp         | string           | if no `type`/`file`         | References another comp by name    |
 | inPoint      | number           | no                          | In point (seconds, >= 0)           |
 | outPoint     | number           | no                          | Out point (seconds, >= 0)          |
 | startTime    | number           | no                          | Start time offset                  |
@@ -168,13 +197,32 @@ Each layer must have either `type` or `file` (not both).
 
 #### `transform`
 
-| Property    | Type            | Description                   |
-| ----------- | --------------- | ----------------------------- |
-| anchorPoint | [x, y]          | Anchor point                  |
-| position    | [x, y]          | Position                      |
-| scale       | [x, y]          | Scale (percent)               |
-| rotation    | number          | Rotation (degrees)            |
-| opacity     | number          | Opacity (0-100)               |
+Each transform property accepts either a static value or an array of keyframes (minimum 2).
+
+| Property    | Static type | Keyframe value | Description                   |
+| ----------- | ----------- | -------------- | ----------------------------- |
+| anchorPoint | [x, y]      | [x, y]         | Anchor point                  |
+| position    | [x, y]      | [x, y]         | Position                      |
+| scale       | [x, y]      | [x, y]         | Scale (percent)               |
+| rotation    | number      | number         | Rotation (degrees)            |
+| opacity     | number      | number (0-100) | Opacity                       |
+
+**Keyframe syntax**: each keyframe is an object with `time` (seconds, >= 0) and `value`. You can mix static and keyframed properties on the same layer.
+
+```yaml
+transform:
+  rotation: 45                    # static
+  position:                       # keyframed
+    - time: 0
+      value: [0, 0]
+    - time: 5
+      value: [1920, 1080]
+  opacity:
+    - time: 0
+      value: 0
+    - time: 2
+      value: 100
+```
 
 #### Blending modes
 
