@@ -9,6 +9,7 @@ Write declarative YAML to describe compositions, layers, folders, and footage â€
 - **YAML-to-AE**: Define compositions, layers, folders, and file imports in YAML and create them in After Effects
 - **AE-to-YAML**: Generate YAML from an existing composition (full comp or selected layers)
 - **Comp-in-comp nesting**: Reference other compositions as layers using the `comp` key
+- **Effects**: Apply effects to layers with static or keyframed properties, identified by display name or matchName
 - **Keyframe animation**: Animate transform properties with keyframe arrays
 - **Built-in editor**: CodeMirror 6 with YAML syntax highlighting, code folding, and real-time schema validation
 - **Schema validation**: Errors display inline in the editor with line numbers before anything is sent to AE
@@ -194,6 +195,44 @@ Each layer must have exactly one of `type`, `file`, or `comp`.
 | parent       | string           | no                          | Parent layer name                  |
 | blendingMode | string           | no                          | Blending mode (see list below)     |
 | transform    | object           | no                          | Transform properties (see below)   |
+
+#### `effects`
+
+An optional array on each layer. Each effect has:
+
+| Property   | Type   | Required | Description                                   |
+| ---------- | ------ | -------- | --------------------------------------------- |
+| name       | string | yes      | Effect display name                            |
+| matchName  | string | no       | AE internal match name (for portability)       |
+| enabled    | boolean| no       | Default `true`; set `false` to disable         |
+| properties | object | no       | Key-value map of property names to values      |
+
+**Property value types:**
+
+| Type              | Example                             | Description                     |
+| ----------------- | ----------------------------------- | ------------------------------- |
+| number            | `10`                                | Scalar value                    |
+| boolean           | `true`                              | Checkbox (converted to 1/0)     |
+| number array      | `[960, 540]`                        | 2D point, color, etc.           |
+| keyframe array    | `[{time: 0, value: 10}, ...]`       | Animated (minimum 2 keyframes)  |
+
+```yaml
+effects:
+  - name: Gaussian Blur
+    matchName: ADBE Gaussian Blur 2
+    properties:
+      Blurriness: 10
+      Repeat Edge Pixels: true
+  - name: CC Radial Fast Blur
+    enabled: false
+    properties:
+      Amount: 50
+      Center:
+        - time: 0
+          value: [960, 540]
+        - time: 5
+          value: [0, 0]
+```
 
 #### `transform`
 

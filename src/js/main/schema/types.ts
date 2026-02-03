@@ -42,6 +42,31 @@ export const TransformSchema = z
 
 export type Transform = z.infer<typeof TransformSchema>;
 
+// --- Effects ---
+
+export const EffectKeyframeSchema = z.object({
+  time: z.number().min(0),
+  value: z.union([z.number(), z.boolean(), z.array(z.number())]),
+});
+
+export const EffectPropertyValueSchema = z.union([
+  z.number(),
+  z.boolean(),
+  z.array(z.number()),
+  z.array(EffectKeyframeSchema).min(2),
+]);
+
+export type EffectPropertyValue = z.infer<typeof EffectPropertyValueSchema>;
+
+export const EffectSchema = z.object({
+  name: z.string().min(1),
+  matchName: z.string().optional(),
+  enabled: z.boolean().optional(),
+  properties: z.record(z.string(), EffectPropertyValueSchema).optional(),
+});
+
+export type Effect = z.infer<typeof EffectSchema>;
+
 // --- Blending modes (AE subset) ---
 
 export const BlendingModeSchema = z
@@ -113,6 +138,9 @@ export const LayerSchema = z
 
     // Transform
     transform: TransformSchema,
+
+    // Effects
+    effects: z.array(EffectSchema).optional(),
   })
   .refine(
     (layer) => {

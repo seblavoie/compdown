@@ -10,6 +10,7 @@ import {
   TupleKeyframeSchema,
   ScalarKeyframeSchema,
   OpacityKeyframeSchema,
+  EffectSchema,
 } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -368,6 +369,153 @@ describe("LayerSchema", () => {
     const result = LayerSchema.safeParse({
       name: "",
       type: "null",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a layer with effects", () => {
+    const result = LayerSchema.safeParse({
+      name: "FX Layer",
+      type: "solid",
+      color: "FF0000",
+      effects: [
+        {
+          name: "Gaussian Blur",
+          properties: { Blurriness: 10 },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// EffectSchema
+// ---------------------------------------------------------------------------
+
+describe("EffectSchema", () => {
+  it("accepts a minimal effect (name only)", () => {
+    const result = EffectSchema.safeParse({ name: "Glow" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts an effect with matchName", () => {
+    const result = EffectSchema.safeParse({
+      name: "Gaussian Blur",
+      matchName: "ADBE Gaussian Blur 2",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts an effect with enabled: false", () => {
+    const result = EffectSchema.safeParse({
+      name: "Glow",
+      enabled: false,
+    });
+    expect(result.success).toBe(true);
+    expect(result.data!.enabled).toBe(false);
+  });
+
+  it("accepts scalar number property", () => {
+    const result = EffectSchema.safeParse({
+      name: "Blur",
+      properties: { Blurriness: 10 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts boolean property", () => {
+    const result = EffectSchema.safeParse({
+      name: "Blur",
+      properties: { "Repeat Edge Pixels": true },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts array property (2D point)", () => {
+    const result = EffectSchema.safeParse({
+      name: "Radial Blur",
+      properties: { Center: [960, 540] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts array property (color triplet)", () => {
+    const result = EffectSchema.safeParse({
+      name: "Fill",
+      properties: { Color: [1, 0, 0] },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed number property", () => {
+    const result = EffectSchema.safeParse({
+      name: "Blur",
+      properties: {
+        Blurriness: [
+          { time: 0, value: 0 },
+          { time: 2, value: 50 },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed 2D point property", () => {
+    const result = EffectSchema.safeParse({
+      name: "Radial Blur",
+      properties: {
+        Center: [
+          { time: 0, value: [960, 540] },
+          { time: 5, value: [0, 0] },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed boolean property", () => {
+    const result = EffectSchema.safeParse({
+      name: "Effect",
+      properties: {
+        Toggle: [
+          { time: 0, value: true },
+          { time: 1, value: false },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects empty name", () => {
+    const result = EffectSchema.safeParse({ name: "" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects missing name", () => {
+    const result = EffectSchema.safeParse({});
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects single keyframe (min 2)", () => {
+    const result = EffectSchema.safeParse({
+      name: "Blur",
+      properties: {
+        Blurriness: [{ time: 0, value: 10 }],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative keyframe time", () => {
+    const result = EffectSchema.safeParse({
+      name: "Blur",
+      properties: {
+        Blurriness: [
+          { time: -1, value: 0 },
+          { time: 2, value: 50 },
+        ],
+      },
     });
     expect(result.success).toBe(false);
   });

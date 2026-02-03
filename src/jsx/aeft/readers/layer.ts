@@ -54,6 +54,93 @@ function readKeyframes(prop: Property): object[] {
   return keyframes;
 }
 
+/**
+ * Read keyframes from an effect property, preserving fractional precision
+ * (rounded to 3 decimal places).
+ */
+function readEffectKeyframes(prop: Property): object[] {
+  var keyframes: object[] = [];
+  for (var i = 1; i <= prop.numKeys; i++) {
+    var val = prop.keyValue(i);
+    var time = Math.round(prop.keyTime(i) * 1000) / 1000;
+    if (val instanceof Array) {
+      var arr: number[] = [];
+      for (var j = 0; j < val.length; j++) {
+        arr.push(Math.round(val[j] * 1000) / 1000);
+      }
+      keyframes.push({ time: time, value: arr });
+    } else {
+      keyframes.push({ time: time, value: Math.round((val as number) * 1000) / 1000 });
+    }
+  }
+  return keyframes;
+}
+
+/**
+ * Read effects from a layer.
+ */
+function readEffects(layer: Layer): object[] | null {
+  var effectsGroup: PropertyGroup;
+  try {
+    effectsGroup = layer.property("ADBE Effect Parade") as PropertyGroup;
+  } catch (e) {
+    return null;
+  }
+  if (!effectsGroup || effectsGroup.numProperties === 0) return null;
+
+  var effects: object[] = [];
+  for (var i = 1; i <= effectsGroup.numProperties; i++) {
+    var effect = effectsGroup.property(i) as PropertyGroup;
+    var effectObj: { [key: string]: any } = {};
+    effectObj.name = effect.name;
+    effectObj.matchName = effect.matchName;
+
+    if (!effect.enabled) {
+      effectObj.enabled = false;
+    }
+
+    var properties: { [key: string]: any } = {};
+    var hasProperties = false;
+
+    for (var j = 1; j <= effect.numProperties; j++) {
+      try {
+        var prop = effect.property(j) as Property;
+        if (prop.propertyType !== PropertyType.PROPERTY) continue;
+
+        var propName = prop.name;
+        if (prop.numKeys > 0) {
+          properties[propName] = readEffectKeyframes(prop);
+          hasProperties = true;
+        } else {
+          var val = prop.value;
+          if (val !== undefined && val !== null) {
+            if (val instanceof Array) {
+              var arr: number[] = [];
+              for (var k = 0; k < val.length; k++) {
+                arr.push(Math.round(val[k] * 1000) / 1000);
+              }
+              properties[propName] = arr;
+            } else {
+              properties[propName] = Math.round((val as number) * 1000) / 1000;
+            }
+            hasProperties = true;
+          }
+        }
+      } catch (e) {
+        // Some properties may not be readable; skip
+      }
+    }
+
+    if (hasProperties) {
+      effectObj.properties = properties;
+    }
+
+    effects.push(effectObj);
+  }
+
+  return effects.length > 0 ? effects : null;
+}
+
 function readTransform(layer: Layer): object | null {
   var transform: { [key: string]: any } = {};
   var hasValues = false;
@@ -182,6 +269,12 @@ export function readLayer(layer: Layer): object {
   var transform = readTransform(layer);
   if (transform) {
     result.transform = transform;
+  }
+
+  // Effects
+  var effects = readEffects(layer);
+  if (effects) {
+    result.effects = effects;
   }
 
   return result;

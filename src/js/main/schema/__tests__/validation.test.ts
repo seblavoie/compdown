@@ -346,6 +346,107 @@ compositions:
     expect(Array.isArray(transform.position)).toBe(true);
   });
 
+  // ---------------------------------------------------------------------------
+  // Effects
+  // ---------------------------------------------------------------------------
+
+  it("validates a layer with effects (scalar and boolean properties)", () => {
+    const yaml = `
+compositions:
+  - name: FX Comp
+    layers:
+      - name: BG
+        type: solid
+        color: "FF0000"
+        effects:
+          - name: Gaussian Blur
+            matchName: ADBE Gaussian Blur 2
+            properties:
+              Blurriness: 10
+              Repeat Edge Pixels: true
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const layer = result.data!.compositions![0].layers![0];
+    expect(layer.effects).toHaveLength(1);
+    expect(layer.effects![0].name).toBe("Gaussian Blur");
+    expect(layer.effects![0].matchName).toBe("ADBE Gaussian Blur 2");
+    expect(layer.effects![0].properties!["Blurriness"]).toBe(10);
+    expect(layer.effects![0].properties!["Repeat Edge Pixels"]).toBe(true);
+  });
+
+  it("validates keyframed effect properties", () => {
+    const yaml = `
+compositions:
+  - name: FX Comp
+    layers:
+      - name: BG
+        type: solid
+        color: "000000"
+        effects:
+          - name: CC Radial Fast Blur
+            properties:
+              Amount: 50
+              Center:
+                - time: 0
+                  value: [960, 540]
+                - time: 5
+                  value: [0, 0]
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const effect = result.data!.compositions![0].layers![0].effects![0];
+    expect(effect.properties!["Amount"]).toBe(50);
+    const center = effect.properties!["Center"] as any[];
+    expect(center).toHaveLength(2);
+    expect(center[0].time).toBe(0);
+    expect(center[0].value).toEqual([960, 540]);
+  });
+
+  it("validates multiple effects on one layer", () => {
+    const yaml = `
+compositions:
+  - name: Multi FX
+    layers:
+      - name: BG
+        type: solid
+        color: "000000"
+        effects:
+          - name: Gaussian Blur
+            properties:
+              Blurriness: 20
+          - name: Glow
+            enabled: false
+            properties:
+              Glow Radius: 10
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const effects = result.data!.compositions![0].layers![0].effects!;
+    expect(effects).toHaveLength(2);
+    expect(effects[0].name).toBe("Gaussian Blur");
+    expect(effects[1].name).toBe("Glow");
+    expect(effects[1].enabled).toBe(false);
+  });
+
+  it("validates an effect with no properties", () => {
+    const yaml = `
+compositions:
+  - name: Simple FX
+    layers:
+      - name: BG
+        type: solid
+        color: "000000"
+        effects:
+          - name: Glow
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const effect = result.data!.compositions![0].layers![0].effects![0];
+    expect(effect.name).toBe("Glow");
+    expect(effect.properties).toBeUndefined();
+  });
+
   it("rejects keyframed opacity out of range in YAML", () => {
     const yaml = `
 compositions:

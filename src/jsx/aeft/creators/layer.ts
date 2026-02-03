@@ -45,6 +45,18 @@ interface TransformDef {
   opacity?: number | KeyframeDef[];
 }
 
+interface EffectKeyframeDef {
+  time: number;
+  value: number | boolean | number[];
+}
+
+interface EffectDef {
+  name: string;
+  matchName?: string;
+  enabled?: boolean;
+  properties?: { [key: string]: number | boolean | number[] | EffectKeyframeDef[] };
+}
+
 interface LayerDef {
   name: string;
   type?: string;
@@ -66,6 +78,7 @@ interface LayerDef {
   parent?: string;
   blendingMode?: string;
   transform?: TransformDef;
+  effects?: EffectDef[];
 }
 
 /**
@@ -83,6 +96,74 @@ function isKeyframeArray(val: any): val is KeyframeDef[] {
 function applyKeyframes(prop: Property, keyframes: KeyframeDef[]): void {
   for (var k = 0; k < keyframes.length; k++) {
     prop.setValueAtTime(keyframes[k].time, keyframes[k].value);
+  }
+}
+
+/**
+ * Check if an effect property value is a keyframe array.
+ */
+function isEffectKeyframeArray(val: any): val is EffectKeyframeDef[] {
+  if (!(val instanceof Array) || val.length === 0) return false;
+  return typeof val[0] === "object" && val[0] !== null && "time" in val[0];
+}
+
+/**
+ * Convert a boolean to 1/0 for AE effect properties.
+ */
+function boolToNum(val: any): any {
+  if (typeof val === "boolean") return val ? 1 : 0;
+  if (val instanceof Array) {
+    var result: any[] = [];
+    for (var i = 0; i < val.length; i++) {
+      result.push(typeof val[i] === "boolean" ? (val[i] ? 1 : 0) : val[i]);
+    }
+    return result;
+  }
+  return val;
+}
+
+/**
+ * Apply effects to a layer.
+ */
+function applyEffects(layer: Layer, effects: EffectDef[]): void {
+  var effectsGroup = layer.property("ADBE Effect Parade") as PropertyGroup;
+
+  for (var i = 0; i < effects.length; i++) {
+    var eDef = effects[i];
+    var addName = eDef.matchName || eDef.name;
+    var effect = effectsGroup.addProperty(addName) as PropertyGroup;
+
+    // Rename to display name if matchName was used
+    if (eDef.matchName && eDef.name) {
+      effect.name = eDef.name;
+    }
+
+    // Disable effect if requested
+    if (eDef.enabled === false) {
+      effect.enabled = false;
+    }
+
+    if (eDef.properties) {
+      for (var propName in eDef.properties) {
+        if (!eDef.properties.hasOwnProperty(propName)) continue;
+        var propVal = eDef.properties[propName];
+        try {
+          var prop = effect.property(propName) as Property;
+          if (!prop) continue;
+
+          if (isEffectKeyframeArray(propVal)) {
+            for (var k = 0; k < propVal.length; k++) {
+              prop.setValueAtTime(propVal[k].time, boolToNum(propVal[k].value));
+            }
+          } else {
+            //@ts-ignore
+            prop.setValue(boolToNum(propVal));
+          }
+        } catch (e) {
+          // Some properties may not be settable; skip silently
+        }
+      }
+    }
   }
 }
 
@@ -250,6 +331,11 @@ export const createLayers = (
     // Transform
     if (layerDef.transform) {
       applyTransform(newLayer, layerDef.transform);
+    }
+
+    // Effects
+    if (layerDef.effects && layerDef.effects.length > 0) {
+      applyEffects(newLayer, layerDef.effects);
     }
 
     layerNameMap[layerDef.name] = newLayer;
