@@ -4,7 +4,7 @@
   "version": "0.0.1",
   "type": "module",
   "scripts": {
-    "dev": "vite",
+    "dev": "mkdir -p dist/cep/main && cp src/js/main/index.html dist/cep/main/index.html && vite",
     "watch": "tsc && vite build --watch true",
     "build": "rimraf dist/* && tsc -p \"tsconfig-build.json\" && vite build --watch false",
     "zxp": "rimraf dist/* && tsc -p \"tsconfig-build.json\" && cross-env ZXP_PACKAGE=true vite build --watch false",

@@ -60,7 +60,7 @@ compositions:
     layers:
       - name: background
         type: solid
-        color: "1a1a2e"
+        color: 1a1a2e
       - name: title
         type: text
         text: Hello World
@@ -93,7 +93,7 @@ compositions:
     layers:
       - name: bar
         type: solid
-        color: "1a1a2e"
+        color: 1a1a2e
       - name: label
         type: text
         text: Breaking News
@@ -141,10 +141,10 @@ compositions:
 
 #### `folders`
 
-| Property | Type   | Required | Description          |
-| -------- | ------ | -------- | -------------------- |
-| name     | string | yes      | Folder name          |
-| parent   | string | no       | Parent folder name   |
+| Property | Type   | Required | Description        |
+| -------- | ------ | -------- | ------------------ |
+| name     | string | yes      | Folder name        |
+| parent   | string | no       | Parent folder name |
 
 #### `files`
 
@@ -157,64 +157,64 @@ compositions:
 
 #### `compositions`
 
-| Property    | Type   | Required | Default    | Description              |
-| ----------- | ------ | -------- | ---------- | ------------------------ |
-| name        | string | yes      |            | Composition name         |
-| width       | int    | no       | 1920       | Width in pixels          |
-| height      | int    | no       | 1080       | Height in pixels         |
-| duration    | number | no       | 10         | Duration in seconds      |
-| framerate   | number | no       | 30         | Frames per second        |
-| pixelAspect | number | no       | 1          | Pixel aspect ratio       |
-| color       | string | no       | `"000000"` | Background hex color     |
-| folder      | string | no       |            | Target project folder    |
-| layers      | array  | no       |            | List of layers (below)   |
+| Property    | Type   | Required | Default    | Description            |
+| ----------- | ------ | -------- | ---------- | ---------------------- |
+| name        | string | yes      |            | Composition name       |
+| width       | int    | no       | 1920       | Width in pixels        |
+| height      | int    | no       | 1080       | Height in pixels       |
+| duration    | number | no       | 10         | Duration in seconds    |
+| framerate   | number | no       | 30         | Frames per second      |
+| pixelAspect | number | no       | 1          | Pixel aspect ratio     |
+| color       | string | no       | `"000000"` | Background hex color   |
+| folder      | string | no       |            | Target project folder  |
+| layers      | array  | no       |            | List of layers (below) |
 
 #### `layers`
 
 Each layer must have exactly one of `type`, `file`, or `comp`.
 
-| Property     | Type             | Required                    | Description                        |
-| ------------ | ---------------- | --------------------------- | ---------------------------------- |
-| name         | string           | yes                         | Layer name                         |
-| type         | string           | if no `file`/`comp`         | `solid`, `null`, `adjustment`, `text` |
-| file         | string \| number | if no `type`/`comp`         | References a file `id`             |
-| comp         | string           | if no `type`/`file`         | References another comp by name    |
-| inPoint      | number           | no                          | In point (seconds, >= 0)           |
-| outPoint     | number           | no                          | Out point (seconds, >= 0)          |
-| startTime    | number           | no                          | Start time offset                  |
-| width        | int              | no                          | Solid width                        |
-| height       | int              | no                          | Solid height                       |
-| color        | string           | yes for `solid`             | 6-char hex color (e.g. `FF0000`)   |
-| text         | string           | yes for `text`              | Text content                       |
-| fontSize     | number           | no                          | Font size                          |
-| font         | string           | no                          | Font family name                   |
-| enabled      | boolean          | no                          | Layer visibility                   |
-| shy          | boolean          | no                          | Shy flag                           |
-| locked       | boolean          | no                          | Lock flag                          |
-| threeDLayer  | boolean          | no                          | Enable 3D                          |
-| parent       | string           | no                          | Parent layer name                  |
-| blendingMode | string           | no                          | Blending mode (see list below)     |
-| transform    | object           | no                          | Transform properties (see below)   |
+| Property     | Type             | Required            | Description                           |
+| ------------ | ---------------- | ------------------- | ------------------------------------- |
+| name         | string           | yes                 | Layer name                            |
+| type         | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text` |
+| file         | string \| number | if no `type`/`comp` | References a file `id`                |
+| comp         | string           | if no `type`/`file` | References another comp by name       |
+| inPoint      | number           | no                  | In point (seconds, >= 0)              |
+| outPoint     | number           | no                  | Out point (seconds, >= 0)             |
+| startTime    | number           | no                  | Start time offset                     |
+| width        | int              | no                  | Solid width                           |
+| height       | int              | no                  | Solid height                          |
+| color        | string           | yes for `solid`     | 6-char hex color (e.g. `FF0000`)      |
+| text         | string           | yes for `text`      | Text content                          |
+| fontSize     | number           | no                  | Font size                             |
+| font         | string           | no                  | Font family name                      |
+| enabled      | boolean          | no                  | Layer visibility                      |
+| shy          | boolean          | no                  | Shy flag                              |
+| locked       | boolean          | no                  | Lock flag                             |
+| threeDLayer  | boolean          | no                  | Enable 3D                             |
+| parent       | string           | no                  | Parent layer name                     |
+| blendingMode | string           | no                  | Blending mode (see list below)        |
+| transform    | object           | no                  | Transform properties (see below)      |
 
 #### `effects`
 
 An optional array on each layer. Each effect has:
 
-| Property   | Type   | Required | Description                                   |
-| ---------- | ------ | -------- | --------------------------------------------- |
-| name       | string | yes      | Effect display name                            |
-| matchName  | string | no       | AE internal match name (for portability)       |
-| enabled    | boolean| no       | Default `true`; set `false` to disable         |
-| properties | object | no       | Key-value map of property names to values      |
+| Property   | Type    | Required | Description                               |
+| ---------- | ------- | -------- | ----------------------------------------- |
+| name       | string  | yes      | Effect display name                       |
+| matchName  | string  | no       | AE internal match name (for portability)  |
+| enabled    | boolean | no       | Default `true`; set `false` to disable    |
+| properties | object  | no       | Key-value map of property names to values |
 
 **Property value types:**
 
-| Type              | Example                             | Description                     |
-| ----------------- | ----------------------------------- | ------------------------------- |
-| number            | `10`                                | Scalar value                    |
-| boolean           | `true`                              | Checkbox (converted to 1/0)     |
-| number array      | `[960, 540]`                        | 2D point, color, etc.           |
-| keyframe array    | `[{time: 0, value: 10}, ...]`       | Animated (minimum 2 keyframes)  |
+| Type           | Example                       | Description                    |
+| -------------- | ----------------------------- | ------------------------------ |
+| number         | `10`                          | Scalar value                   |
+| boolean        | `true`                        | Checkbox (converted to 1/0)    |
+| number array   | `[960, 540]`                  | 2D point, color, etc.          |
+| keyframe array | `[{time: 0, value: 10}, ...]` | Animated (minimum 2 keyframes) |
 
 ```yaml
 effects:
@@ -238,20 +238,20 @@ effects:
 
 Each transform property accepts either a static value or an array of keyframes (minimum 2).
 
-| Property    | Static type | Keyframe value | Description                   |
-| ----------- | ----------- | -------------- | ----------------------------- |
-| anchorPoint | [x, y]      | [x, y]         | Anchor point                  |
-| position    | [x, y]      | [x, y]         | Position                      |
-| scale       | [x, y]      | [x, y]         | Scale (percent)               |
-| rotation    | number      | number         | Rotation (degrees)            |
-| opacity     | number      | number (0-100) | Opacity                       |
+| Property    | Static type | Keyframe value | Description        |
+| ----------- | ----------- | -------------- | ------------------ |
+| anchorPoint | [x, y]      | [x, y]         | Anchor point       |
+| position    | [x, y]      | [x, y]         | Position           |
+| scale       | [x, y]      | [x, y]         | Scale (percent)    |
+| rotation    | number      | number         | Rotation (degrees) |
+| opacity     | number      | number (0-100) | Opacity            |
 
 **Keyframe syntax**: each keyframe is an object with `time` (seconds, >= 0) and `value`. You can mix static and keyframed properties on the same layer.
 
 ```yaml
 transform:
-  rotation: 45                    # static
-  position:                       # keyframed
+  rotation: 45 # static
+  position: # keyframed
     - time: 0
       value: [0, 0]
     - time: 5
