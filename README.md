@@ -1,19 +1,32 @@
 # Compdown
 
-An Adobe After Effects extension that converts YAML into AE compositions and vice versa.
+**A natural language for After Effects.**
 
-Write declarative YAML to describe compositions, layers, folders, and footage — then create them in After Effects with a single click. Or go the other direction: read an existing composition back into YAML.
+Compdown is an After Effects extension that lets you describe After Effects content (compositions, layers, folders, files, keyframes, effects, etc.) in YAML and create them with a single click.
 
-## Features
+It also allows you to export existing comps back into YAML.
 
-- **YAML-to-AE**: Define compositions, layers, folders, and file imports in YAML and create them in After Effects
-- **AE-to-YAML**: Generate YAML from an existing composition (full comp or selected layers)
-- **Comp-in-comp nesting**: Reference other compositions as layers using the `comp` key
-- **Effects**: Apply effects to layers with static or keyframed properties, identified by display name or matchName
-- **Keyframe animation**: Animate transform properties with keyframe arrays
-- **Built-in editor**: CodeMirror 6 with YAML syntax highlighting, code folding, and real-time schema validation
-- **Schema validation**: Errors display inline in the editor with line numbers before anything is sent to AE
-- **Load from file**: Import `.yaml` / `.yml` files from disk
+## Why text?
+
+- **Readable** — Elegant syntax that stays clean when you ship it across teams
+- **Shareable** — Save it, gist it, email it, or drop it in a repo. Text travels well
+- **Fast** — Copy, paste, process. Stay in After Effects and skip binary presets
+- **AI-friendly** — If an AI can read and write the same text you use, it can help draft scenes, explore variations, or build first passes
+
+## Supported Features
+
+### After Effects
+
+- **Project structure**: Define **folders**, **files**, and **compositions** in YAML; creation order is folders → files → compositions → layers
+- **Layer types**: Solids, nulls, adjustment layers, text layers, file-based layers (footage, images), and comp-in-comp nesting via the `comp` key
+- **Keyframe animation**: Transform properties (position, scale, rotation, opacity, anchor point) with static values or arrays of keyframes
+- **Layer effects**: Native effects on layers, with properties supporting static or animated values, by display name or `matchName`
+
+### Extension
+
+- **Schema validation**: Real-time type and structure validation for all YAML, with detailed, line-numbered errors before anything reaches AE
+- **Built-in editor**: CodeMirror 6 with YAML syntax highlighting, code folding, one-dark theme, and error gutter
+- **Import/export**: Load `.yaml`/`.yml` files from disk and export existing AE comps back to YAML with a single click
 
 ## Installation
 
