@@ -280,6 +280,80 @@ compositions:
   });
 
   // ---------------------------------------------------------------------------
+  // YAML numeric color handling
+  // ---------------------------------------------------------------------------
+
+  it("handles numeric color in layer (leading zeros)", () => {
+    // In YAML, `color: 000000` parses as the number 0
+    const yaml = `
+compositions:
+  - name: Test
+    layers:
+      - name: Black
+        type: solid
+        color: 000000
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers![0].color).toBe("000000");
+  });
+
+  it("handles numeric color in layer (all digits)", () => {
+    const yaml = `
+compositions:
+  - name: Test
+    layers:
+      - name: Gray
+        type: solid
+        color: 123456
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers![0].color).toBe("123456");
+  });
+
+  it("handles numeric color in comp background", () => {
+    const yaml = `
+compositions:
+  - name: Test
+    color: 000000
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].color).toBe("000000");
+  });
+
+  it("preserves string color with hex letters", () => {
+    const yaml = `
+compositions:
+  - name: Test
+    layers:
+      - name: Red
+        type: solid
+        color: FF0000
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers![0].color).toBe("FF0000");
+  });
+
+  it("handles color-like property names on layers", () => {
+    // Future-proofing: if we add fillColor, strokeColor etc. to layers
+    // Note: effect properties use RGB arrays [r,g,b], not hex strings
+    const yaml = `
+compositions:
+  - name: Test
+    layers:
+      - name: Solid
+        type: solid
+        color: 000000
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers![0].color).toBe("000000");
+  });
+
+  // ---------------------------------------------------------------------------
   // Comp-in-comp
   // ---------------------------------------------------------------------------
 

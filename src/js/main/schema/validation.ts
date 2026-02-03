@@ -60,8 +60,38 @@ function findLineForPath(yamlText: string, path: (string | number)[]): number | 
 }
 
 /**
- * Post-process parsed YAML to handle YAML's null literal in layer type fields.
- * In YAML, `type: null` parses as JavaScript null, but we want it as the string "null".
+ * Check if a property name looks like a color property.
+ */
+function isColorProperty(key: string): boolean {
+  return key.toLowerCase().endsWith("color") || key.toLowerCase().endsWith("colour");
+}
+
+/**
+ * Convert a numeric color value to a zero-padded 6-character hex string.
+ * In YAML, `color: 000000` parses as the number 0, but we want "000000".
+ */
+function normalizeColor(value: unknown): string | unknown {
+  if (typeof value === "number") {
+    return value.toString().padStart(6, "0");
+  }
+  return value;
+}
+
+/**
+ * Normalize color properties in an object by checking all keys.
+ */
+function normalizeColorProperties(obj: Record<string, unknown>): void {
+  for (const key of Object.keys(obj)) {
+    if (isColorProperty(key)) {
+      obj[key] = normalizeColor(obj[key]);
+    }
+  }
+}
+
+/**
+ * Post-process parsed YAML to handle YAML quirks:
+ * - `type: null` parses as JavaScript null, but we want the string "null"
+ * - `color: 000000` parses as number 0, but we want the string "000000"
  */
 function preprocessParsedYaml(data: unknown): unknown {
   if (data === null || data === undefined || typeof data !== "object") {
@@ -70,17 +100,30 @@ function preprocessParsedYaml(data: unknown): unknown {
 
   const obj = data as Record<string, unknown>;
 
-  // If this looks like a layer object with type: null, convert to "null"
-  if ("name" in obj && obj.type === null) {
-    obj.type = "null";
-  }
-
   // Recurse into compositions and layers
   if (Array.isArray(obj.compositions)) {
     for (const comp of obj.compositions) {
-      if (comp && typeof comp === "object" && Array.isArray((comp as Record<string, unknown>).layers)) {
-        for (const layer of (comp as Record<string, unknown>).layers as unknown[]) {
-          preprocessParsedYaml(layer);
+      if (comp && typeof comp === "object") {
+        const compObj = comp as Record<string, unknown>;
+
+        // Handle color properties on comp
+        normalizeColorProperties(compObj);
+
+        // Process layers
+        if (Array.isArray(compObj.layers)) {
+          for (const layer of compObj.layers as unknown[]) {
+            if (layer && typeof layer === "object") {
+              const layerObj = layer as Record<string, unknown>;
+
+              // Handle type: null
+              if ("name" in layerObj && layerObj.type === null) {
+                layerObj.type = "null";
+              }
+
+              // Handle color properties on layer (not in effects - those use RGB arrays)
+              normalizeColorProperties(layerObj);
+            }
+          }
         }
       }
     }
