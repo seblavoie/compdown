@@ -65,6 +65,11 @@ npx tsc -p tsconfig-build.json --noEmit
 
 A Compdown document has three optional top-level keys: `folders`, `files`, and `compositions`. At least one must be present.
 
+> [!NOTE]
+> Compdown automatically handles some YAML parsing quirks so you don't need extra quotes:
+> - `type: null` works as-is (YAML would normally parse this as a null value, not the string "null")
+> - `color: 000000` works as-is (YAML would normally parse all-digit values as numbers)
+
 ### Minimal example
 
 ```yaml

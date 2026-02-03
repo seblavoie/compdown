@@ -1,5 +1,4 @@
 import yaml from "js-yaml";
-import { ZodError } from "zod";
 import { CompdownDocumentSchema, type CompdownDocument } from "./types";
 
 export interface ValidationError {
@@ -161,7 +160,7 @@ export function validateYaml(yamlText: string): ValidationResult {
     };
   }
 
-  // Step 1.5: Handle YAML null literal in layer type fields
+  // Step 1.5: Normalize YAML quirks (null literals, numeric colors)
   preprocessParsedYaml(parsed);
 
   // Step 2: Validate with Zod
