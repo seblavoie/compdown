@@ -67,6 +67,24 @@ export const EffectSchema = z.object({
 
 export type Effect = z.infer<typeof EffectSchema>;
 
+// --- Layer quality modes ---
+
+export const QualityModeSchema = z.enum(["best", "draft", "wireframe"]).optional();
+
+export const SamplingQualitySchema = z.enum(["bicubic", "bilinear"]).optional();
+
+export const AutoOrientSchema = z
+  .enum(["off", "alongPath", "cameraOrPointOfInterest"])
+  .optional();
+
+export const FrameBlendingTypeSchema = z
+  .enum(["none", "frameMix", "pixelMotion"])
+  .optional();
+
+export const TrackMatteTypeSchema = z
+  .enum(["none", "alpha", "alphaInverted", "luma", "lumaInverted"])
+  .optional();
+
 // --- Blending modes (AE subset) ---
 
 export const BlendingModeSchema = z
@@ -135,6 +153,25 @@ export const LayerSchema = z
     threeDLayer: z.boolean().optional(),
     parent: z.string().optional(),
     blendingMode: BlendingModeSchema,
+
+    // Additional boolean flags
+    solo: z.boolean().optional(),
+    audioEnabled: z.boolean().optional(),
+    motionBlur: z.boolean().optional(),
+    collapseTransformation: z.boolean().optional(),
+    guideLayer: z.boolean().optional(),
+    effectsActive: z.boolean().optional(),
+    timeRemapEnabled: z.boolean().optional(),
+
+    // Quality and rendering
+    quality: QualityModeSchema,
+    samplingQuality: SamplingQualitySchema,
+    autoOrient: AutoOrientSchema,
+    frameBlendingType: FrameBlendingTypeSchema,
+    trackMatteType: TrackMatteTypeSchema,
+
+    // Numeric properties
+    label: z.number().int().min(0).max(16).optional(),
 
     // Transform
     transform: TransformSchema,

@@ -32,6 +32,52 @@ var blendingModes: { [key: string]: BlendingMode } = {
   luminosity: BlendingMode.LUMINOSITY,
 };
 
+/**
+ * Mapping of YAML quality mode names to AE LayerQuality enum values.
+ */
+var qualityModes: { [key: string]: LayerQuality } = {
+  best: LayerQuality.BEST,
+  draft: LayerQuality.DRAFT,
+  wireframe: LayerQuality.WIREFRAME,
+};
+
+/**
+ * Mapping of YAML sampling quality names to AE LayerSamplingQuality enum values.
+ */
+var samplingQualities: { [key: string]: LayerSamplingQuality } = {
+  bicubic: LayerSamplingQuality.BICUBIC,
+  bilinear: LayerSamplingQuality.BILINEAR,
+};
+
+/**
+ * Mapping of YAML auto-orient names to AE AutoOrientType enum values.
+ */
+var autoOrientTypes: { [key: string]: AutoOrientType } = {
+  off: AutoOrientType.NO_AUTO_ORIENT,
+  alongPath: AutoOrientType.ALONG_PATH,
+  cameraOrPointOfInterest: AutoOrientType.CAMERA_OR_POINT_OF_INTEREST,
+};
+
+/**
+ * Mapping of YAML frame blending type names to AE FrameBlendingType enum values.
+ */
+var frameBlendingTypes: { [key: string]: FrameBlendingType } = {
+  none: FrameBlendingType.NO_FRAME_BLEND,
+  frameMix: FrameBlendingType.FRAME_MIX,
+  pixelMotion: FrameBlendingType.PIXEL_MOTION,
+};
+
+/**
+ * Mapping of YAML track matte type names to AE TrackMatteType enum values.
+ */
+var trackMatteTypes: { [key: string]: TrackMatteType } = {
+  none: TrackMatteType.NO_TRACK_MATTE,
+  alpha: TrackMatteType.ALPHA,
+  alphaInverted: TrackMatteType.ALPHA_INVERTED,
+  luma: TrackMatteType.LUMA,
+  lumaInverted: TrackMatteType.LUMA_INVERTED,
+};
+
 interface KeyframeDef {
   time: number;
   value: number | [number, number];
@@ -77,6 +123,22 @@ interface LayerDef {
   threeDLayer?: boolean;
   parent?: string;
   blendingMode?: string;
+  // Additional boolean flags
+  solo?: boolean;
+  audioEnabled?: boolean;
+  motionBlur?: boolean;
+  collapseTransformation?: boolean;
+  guideLayer?: boolean;
+  effectsActive?: boolean;
+  timeRemapEnabled?: boolean;
+  // Quality and rendering enums
+  quality?: string;
+  samplingQuality?: string;
+  autoOrient?: string;
+  frameBlendingType?: string;
+  trackMatteType?: string;
+  // Numeric properties
+  label?: number;
   transform?: TransformDef;
   effects?: EffectDef[];
 }
@@ -333,10 +395,41 @@ export const createLayers = (
     if (layerDef.shy !== undefined) newLayer.shy = layerDef.shy;
     if (layerDef.threeDLayer !== undefined) newLayer.threeDLayer = layerDef.threeDLayer;
 
+    // Additional boolean flags
+    if (layerDef.solo !== undefined) newLayer.solo = layerDef.solo;
+    if (layerDef.audioEnabled !== undefined) newLayer.audioEnabled = layerDef.audioEnabled;
+    if (layerDef.motionBlur !== undefined) newLayer.motionBlurEnabled = layerDef.motionBlur;
+    if (layerDef.collapseTransformation !== undefined)
+      newLayer.collapseTransformation = layerDef.collapseTransformation;
+    if (layerDef.guideLayer !== undefined) newLayer.guideLayer = layerDef.guideLayer;
+    if (layerDef.effectsActive !== undefined) newLayer.effectsActive = layerDef.effectsActive;
+    if (layerDef.timeRemapEnabled !== undefined)
+      newLayer.timeRemapEnabled = layerDef.timeRemapEnabled;
+
     // Blending mode
     if (layerDef.blendingMode && blendingModes[layerDef.blendingMode]) {
       newLayer.blendingMode = blendingModes[layerDef.blendingMode];
     }
+
+    // Quality and rendering enums
+    if (layerDef.quality && qualityModes[layerDef.quality]) {
+      newLayer.quality = qualityModes[layerDef.quality];
+    }
+    if (layerDef.samplingQuality && samplingQualities[layerDef.samplingQuality]) {
+      newLayer.samplingQuality = samplingQualities[layerDef.samplingQuality];
+    }
+    if (layerDef.autoOrient && autoOrientTypes[layerDef.autoOrient]) {
+      newLayer.autoOrient = autoOrientTypes[layerDef.autoOrient];
+    }
+    if (layerDef.frameBlendingType && frameBlendingTypes[layerDef.frameBlendingType]) {
+      newLayer.frameBlendingType = frameBlendingTypes[layerDef.frameBlendingType];
+    }
+    if (layerDef.trackMatteType && trackMatteTypes[layerDef.trackMatteType]) {
+      newLayer.trackMatteType = trackMatteTypes[layerDef.trackMatteType];
+    }
+
+    // Numeric properties
+    if (layerDef.label !== undefined) newLayer.label = layerDef.label;
 
     // Transform
     if (layerDef.transform) {

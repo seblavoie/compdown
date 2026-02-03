@@ -143,11 +143,20 @@ compositions:
       - name: adjustment
         type: adjustment
         blendingMode: softLight
+        effectsActive: true
+      - name: video clip
+        file: seq
+        motionBlur: true
+        quality: best
+        samplingQuality: bicubic
+        frameBlendingType: pixelMotion
+        label: 4
       - name: guide
         type: null
         threeDLayer: true
         locked: true
         shy: true
+        guideLayer: true
 ```
 
 ### Reference
@@ -186,28 +195,41 @@ compositions:
 
 Each layer must have exactly one of `type`, `file`, or `comp`.
 
-| Property     | Type             | Required            | Description                           |
-| ------------ | ---------------- | ------------------- | ------------------------------------- |
-| name         | string           | yes                 | Layer name                            |
-| type         | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text` |
-| file         | string \| number | if no `type`/`comp` | References a file `id`                |
-| comp         | string           | if no `type`/`file` | References another comp by name       |
-| inPoint      | number           | no                  | In point (seconds, >= 0)              |
-| outPoint     | number           | no                  | Out point (seconds, >= 0)             |
-| startTime    | number           | no                  | Start time offset                     |
-| width        | int              | no                  | Solid width                           |
-| height       | int              | no                  | Solid height                          |
-| color        | string           | yes for `solid`     | 6-char hex color (e.g. `FF0000`)      |
-| text         | string           | yes for `text`      | Text content                          |
-| fontSize     | number           | no                  | Font size                             |
-| font         | string           | no                  | Font family name                      |
-| enabled      | boolean          | no                  | Layer visibility                      |
-| shy          | boolean          | no                  | Shy flag                              |
-| locked       | boolean          | no                  | Lock flag                             |
-| threeDLayer  | boolean          | no                  | Enable 3D                             |
-| parent       | string           | no                  | Parent layer name                     |
-| blendingMode | string           | no                  | Blending mode (see list below)        |
-| transform    | object           | no                  | Transform properties (see below)      |
+| Property              | Type             | Required            | Description                              |
+| --------------------- | ---------------- | ------------------- | ---------------------------------------- |
+| name                  | string           | yes                 | Layer name                               |
+| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`    |
+| file                  | string \| number | if no `type`/`comp` | References a file `id`                   |
+| comp                  | string           | if no `type`/`file` | References another comp by name          |
+| inPoint               | number           | no                  | In point (seconds, >= 0)                 |
+| outPoint              | number           | no                  | Out point (seconds, >= 0)                |
+| startTime             | number           | no                  | Start time offset                        |
+| width                 | int              | no                  | Solid width                              |
+| height                | int              | no                  | Solid height                             |
+| color                 | string           | yes for `solid`     | 6-char hex color (e.g. `FF0000`)         |
+| text                  | string           | yes for `text`      | Text content                             |
+| fontSize              | number           | no                  | Font size                                |
+| font                  | string           | no                  | Font family name                         |
+| enabled               | boolean          | no                  | Layer visibility                         |
+| shy                   | boolean          | no                  | Shy flag                                 |
+| locked                | boolean          | no                  | Lock flag                                |
+| threeDLayer           | boolean          | no                  | Enable 3D                                |
+| solo                  | boolean          | no                  | Solo the layer                           |
+| audioEnabled          | boolean          | no                  | Enable/disable audio                     |
+| motionBlur            | boolean          | no                  | Enable motion blur                       |
+| collapseTransformation| boolean          | no                  | Continuously rasterize / collapse        |
+| guideLayer            | boolean          | no                  | Mark as guide layer                      |
+| effectsActive         | boolean          | no                  | Global effects toggle                    |
+| timeRemapEnabled      | boolean          | no                  | Enable time remapping                    |
+| parent                | string           | no                  | Parent layer name                        |
+| blendingMode          | string           | no                  | Blending mode (see list below)           |
+| quality               | string           | no                  | `best`, `draft`, `wireframe`             |
+| samplingQuality       | string           | no                  | `bicubic`, `bilinear`                    |
+| autoOrient            | string           | no                  | `off`, `alongPath`, `cameraOrPointOfInterest` |
+| frameBlendingType     | string           | no                  | `none`, `frameMix`, `pixelMotion`        |
+| trackMatteType        | string           | no                  | `none`, `alpha`, `alphaInverted`, `luma`, `lumaInverted` |
+| label                 | int              | no                  | Color label index (0-16)                 |
+| transform             | object           | no                  | Transform properties (see below)         |
 
 #### `effects`
 

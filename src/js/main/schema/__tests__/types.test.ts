@@ -11,6 +11,11 @@ import {
   ScalarKeyframeSchema,
   OpacityKeyframeSchema,
   EffectSchema,
+  QualityModeSchema,
+  SamplingQualitySchema,
+  AutoOrientSchema,
+  FrameBlendingTypeSchema,
+  TrackMatteTypeSchema,
 } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -386,6 +391,161 @@ describe("LayerSchema", () => {
       ],
     });
     expect(result.success).toBe(true);
+  });
+
+  it("accepts additional boolean flags", () => {
+    const result = LayerSchema.safeParse({
+      name: "Flagged Layer",
+      type: "null",
+      solo: true,
+      audioEnabled: false,
+      motionBlur: true,
+      collapseTransformation: true,
+      guideLayer: true,
+      effectsActive: false,
+      timeRemapEnabled: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts quality and rendering enum properties", () => {
+    const result = LayerSchema.safeParse({
+      name: "Quality Layer",
+      type: "solid",
+      color: "FF0000",
+      quality: "best",
+      samplingQuality: "bicubic",
+      autoOrient: "alongPath",
+      frameBlendingType: "pixelMotion",
+      trackMatteType: "alpha",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts label property", () => {
+    const result = LayerSchema.safeParse({
+      name: "Labeled Layer",
+      type: "null",
+      label: 4,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects label out of range (negative)", () => {
+    const result = LayerSchema.safeParse({
+      name: "Bad Label",
+      type: "null",
+      label: -1,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects label out of range (above 16)", () => {
+    const result = LayerSchema.safeParse({
+      name: "Bad Label",
+      type: "null",
+      label: 17,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects non-integer label", () => {
+    const result = LayerSchema.safeParse({
+      name: "Bad Label",
+      type: "null",
+      label: 4.5,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// QualityModeSchema
+// ---------------------------------------------------------------------------
+
+describe("QualityModeSchema", () => {
+  const Schema = QualityModeSchema.unwrap();
+
+  it("accepts valid quality modes", () => {
+    for (const mode of ["best", "draft", "wireframe"]) {
+      expect(Schema.safeParse(mode).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid quality mode", () => {
+    expect(Schema.safeParse("low").success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// SamplingQualitySchema
+// ---------------------------------------------------------------------------
+
+describe("SamplingQualitySchema", () => {
+  const Schema = SamplingQualitySchema.unwrap();
+
+  it("accepts valid sampling qualities", () => {
+    for (const mode of ["bicubic", "bilinear"]) {
+      expect(Schema.safeParse(mode).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid sampling quality", () => {
+    expect(Schema.safeParse("nearest").success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// AutoOrientSchema
+// ---------------------------------------------------------------------------
+
+describe("AutoOrientSchema", () => {
+  const Schema = AutoOrientSchema.unwrap();
+
+  it("accepts valid auto-orient types", () => {
+    for (const mode of ["off", "alongPath", "cameraOrPointOfInterest"]) {
+      expect(Schema.safeParse(mode).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid auto-orient type", () => {
+    expect(Schema.safeParse("auto").success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// FrameBlendingTypeSchema
+// ---------------------------------------------------------------------------
+
+describe("FrameBlendingTypeSchema", () => {
+  const Schema = FrameBlendingTypeSchema.unwrap();
+
+  it("accepts valid frame blending types", () => {
+    for (const mode of ["none", "frameMix", "pixelMotion"]) {
+      expect(Schema.safeParse(mode).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid frame blending type", () => {
+    expect(Schema.safeParse("optical").success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// TrackMatteTypeSchema
+// ---------------------------------------------------------------------------
+
+describe("TrackMatteTypeSchema", () => {
+  const Schema = TrackMatteTypeSchema.unwrap();
+
+  it("accepts valid track matte types", () => {
+    for (const mode of ["none", "alpha", "alphaInverted", "luma", "lumaInverted"]) {
+      expect(Schema.safeParse(mode).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid track matte type", () => {
+    expect(Schema.safeParse("stencil").success).toBe(false);
   });
 });
 
