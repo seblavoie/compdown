@@ -1,3 +1,5 @@
+import { applyShapes } from "./shapes";
+
 /**
  * Mapping of YAML blending mode names to AE BlendingMode enum values.
  * ExtendScript doesn't support Map, so we use a plain object lookup.
@@ -179,6 +181,8 @@ interface LayerDef {
   label?: number;
   transform?: TransformDef;
   effects?: EffectDef[];
+  // Shape-specific
+  shapes?: any[];
 }
 
 /**
@@ -672,6 +676,13 @@ export const createLayers = (
             (lightOptions.property("ADBE Light Shadow Diffusion") as Property).setValue(
               layerDef.shadowDiffusion
             );
+          }
+          break;
+        }
+        case "shape": {
+          newLayer = comp.layers.addShape();
+          if (layerDef.shapes && layerDef.shapes.length > 0) {
+            applyShapes(newLayer as ShapeLayer, layerDef.shapes);
           }
           break;
         }

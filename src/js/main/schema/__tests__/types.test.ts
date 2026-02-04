@@ -19,6 +19,13 @@ import {
   EssentialGraphicsItemSchema,
   EasingSchema,
   MarkerSchema,
+  ShapeSchema,
+  ShapeFillSchema,
+  ShapeStrokeSchema,
+  RectangleShapeSchema,
+  EllipseShapeSchema,
+  PolygonShapeSchema,
+  StarShapeSchema,
 } from "../types";
 
 // ---------------------------------------------------------------------------
@@ -752,6 +759,371 @@ describe("LayerSchema", () => {
       label: 4.5,
     });
     expect(result.success).toBe(false);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Shape Schemas
+// ---------------------------------------------------------------------------
+
+describe("ShapeFillSchema", () => {
+  it("accepts valid fill with color only", () => {
+    const result = ShapeFillSchema.safeParse({ color: "FF5500" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts fill with color and opacity", () => {
+    const result = ShapeFillSchema.safeParse({ color: "FF5500", opacity: 75 });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects fill without color", () => {
+    const result = ShapeFillSchema.safeParse({ opacity: 100 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid hex color", () => {
+    const result = ShapeFillSchema.safeParse({ color: "ZZZZZZ" });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects opacity above 100", () => {
+    const result = ShapeFillSchema.safeParse({ color: "FF0000", opacity: 150 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects opacity below 0", () => {
+    const result = ShapeFillSchema.safeParse({ color: "FF0000", opacity: -10 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("ShapeStrokeSchema", () => {
+  it("accepts valid stroke with color only", () => {
+    const result = ShapeStrokeSchema.safeParse({ color: "000000" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts stroke with all properties", () => {
+    const result = ShapeStrokeSchema.safeParse({
+      color: "000000",
+      width: 2,
+      opacity: 100,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects stroke without color", () => {
+    const result = ShapeStrokeSchema.safeParse({ width: 2 });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative width", () => {
+    const result = ShapeStrokeSchema.safeParse({ color: "000000", width: -1 });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("RectangleShapeSchema", () => {
+  it("accepts a valid rectangle", () => {
+    const result = RectangleShapeSchema.safeParse({
+      type: "rectangle",
+      size: [400, 200],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts rectangle with all properties", () => {
+    const result = RectangleShapeSchema.safeParse({
+      type: "rectangle",
+      name: "Background",
+      size: [400, 200],
+      position: [0, 0],
+      roundness: 20,
+      fill: { color: "FF5500", opacity: 100 },
+      stroke: { color: "000000", width: 2, opacity: 100 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects rectangle without size", () => {
+    const result = RectangleShapeSchema.safeParse({
+      type: "rectangle",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative roundness", () => {
+    const result = RectangleShapeSchema.safeParse({
+      type: "rectangle",
+      size: [100, 100],
+      roundness: -5,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("EllipseShapeSchema", () => {
+  it("accepts a valid ellipse", () => {
+    const result = EllipseShapeSchema.safeParse({
+      type: "ellipse",
+      size: [100, 100],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts ellipse with fill", () => {
+    const result = EllipseShapeSchema.safeParse({
+      type: "ellipse",
+      name: "Circle",
+      size: [100, 100],
+      position: [50, 50],
+      fill: { color: "00FF00" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects ellipse without size", () => {
+    const result = EllipseShapeSchema.safeParse({
+      type: "ellipse",
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("PolygonShapeSchema", () => {
+  it("accepts a valid polygon (triangle)", () => {
+    const result = PolygonShapeSchema.safeParse({
+      type: "polygon",
+      points: 3,
+      outerRadius: 50,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts polygon with all properties", () => {
+    const result = PolygonShapeSchema.safeParse({
+      type: "polygon",
+      name: "Hexagon",
+      points: 6,
+      position: [0, 0],
+      outerRadius: 100,
+      outerRoundness: 10,
+      rotation: 30,
+      fill: { color: "0000FF" },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects polygon with less than 3 points", () => {
+    const result = PolygonShapeSchema.safeParse({
+      type: "polygon",
+      points: 2,
+      outerRadius: 50,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects polygon without outerRadius", () => {
+    const result = PolygonShapeSchema.safeParse({
+      type: "polygon",
+      points: 5,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects negative outerRadius", () => {
+    const result = PolygonShapeSchema.safeParse({
+      type: "polygon",
+      points: 4,
+      outerRadius: -10,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("StarShapeSchema", () => {
+  it("accepts a valid star", () => {
+    const result = StarShapeSchema.safeParse({
+      type: "star",
+      points: 5,
+      outerRadius: 100,
+      innerRadius: 40,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts star with all properties", () => {
+    const result = StarShapeSchema.safeParse({
+      type: "star",
+      name: "Star",
+      points: 5,
+      position: [0, 0],
+      outerRadius: 100,
+      innerRadius: 40,
+      outerRoundness: 0,
+      innerRoundness: 0,
+      rotation: 0,
+      fill: { color: "FFFF00" },
+      stroke: { color: "000000", width: 1 },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects star without innerRadius", () => {
+    const result = StarShapeSchema.safeParse({
+      type: "star",
+      points: 5,
+      outerRadius: 100,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects star with less than 3 points", () => {
+    const result = StarShapeSchema.safeParse({
+      type: "star",
+      points: 2,
+      outerRadius: 100,
+      innerRadius: 40,
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("ShapeSchema (discriminated union)", () => {
+  it("accepts rectangle shape", () => {
+    const result = ShapeSchema.safeParse({
+      type: "rectangle",
+      size: [100, 100],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts ellipse shape", () => {
+    const result = ShapeSchema.safeParse({
+      type: "ellipse",
+      size: [100, 100],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts polygon shape", () => {
+    const result = ShapeSchema.safeParse({
+      type: "polygon",
+      points: 6,
+      outerRadius: 50,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts star shape", () => {
+    const result = ShapeSchema.safeParse({
+      type: "star",
+      points: 5,
+      outerRadius: 100,
+      innerRadius: 40,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects unknown shape type", () => {
+    const result = ShapeSchema.safeParse({
+      type: "bezier",
+      path: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects shape without type", () => {
+    const result = ShapeSchema.safeParse({
+      size: [100, 100],
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("LayerSchema (shape layers)", () => {
+  it("accepts a shape layer with shapes", () => {
+    const result = LayerSchema.safeParse({
+      name: "Shape Layer",
+      type: "shape",
+      shapes: [
+        { type: "rectangle", size: [100, 100] },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a shape layer with multiple shapes", () => {
+    const result = LayerSchema.safeParse({
+      name: "Multi Shape",
+      type: "shape",
+      shapes: [
+        { type: "rectangle", size: [400, 200], roundness: 20 },
+        { type: "ellipse", size: [100, 100] },
+        { type: "polygon", points: 3, outerRadius: 50 },
+        { type: "star", points: 5, outerRadius: 100, innerRadius: 40 },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a shape layer with fill and stroke", () => {
+    const result = LayerSchema.safeParse({
+      name: "Styled Shape",
+      type: "shape",
+      shapes: [
+        {
+          type: "rectangle",
+          size: [200, 100],
+          fill: { color: "FF5500", opacity: 100 },
+          stroke: { color: "000000", width: 2 },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects a shape layer without shapes", () => {
+    const result = LayerSchema.safeParse({
+      name: "Empty Shape",
+      type: "shape",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error!.issues.some((i) => i.message.includes("shapes"))).toBe(true);
+  });
+
+  it("rejects a shape layer with empty shapes array", () => {
+    const result = LayerSchema.safeParse({
+      name: "Empty Shape",
+      type: "shape",
+      shapes: [],
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts shape layer with transform", () => {
+    const result = LayerSchema.safeParse({
+      name: "Transformed Shape",
+      type: "shape",
+      shapes: [{ type: "rectangle", size: [100, 100] }],
+      transform: {
+        position: [960, 540],
+        scale: [50, 50],
+        rotation: 45,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts shape layer with effects", () => {
+    const result = LayerSchema.safeParse({
+      name: "FX Shape",
+      type: "shape",
+      shapes: [{ type: "rectangle", size: [100, 100], fill: { color: "FF0000" } }],
+      effects: [{ name: "Gaussian Blur", properties: { Blurriness: 10 } }],
+    });
+    expect(result.success).toBe(true);
   });
 });
 

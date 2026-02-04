@@ -18,7 +18,8 @@ It also allows you to export existing comps back into YAML.
 ### After Effects
 
 - **Project structure**: Define **folders**, **files**, and **compositions** in YAML; creation order is folders → files → compositions → layers
-- **Layer types**: Solids, nulls, adjustment layers, text layers, file-based layers (footage, images), and comp-in-comp nesting via the `comp` key
+- **Layer types**: Solids, nulls, adjustment layers, text layers, shape layers, camera layers, light layers, file-based layers (footage, images), and comp-in-comp nesting via the `comp` key
+- **Shape layers**: Parametric shapes (rectangle, ellipse, polygon, star) with fill and stroke properties
 - **Keyframe animation**: Transform properties (position, scale, rotation, opacity, anchor point) with static values or arrays of keyframes
 - **Layer effects**: Native effects on layers, with properties supporting static or animated values, by display name or `matchName`
 
@@ -204,7 +205,7 @@ Each layer must have exactly one of `type`, `file`, or `comp`.
 | Property              | Type             | Required            | Description                              |
 | --------------------- | ---------------- | ------------------- | ---------------------------------------- |
 | name                  | string           | yes                 | Layer name                               |
-| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light` |
+| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape` |
 | file                  | string \| number | if no `type`/`comp` | References a file `id`                   |
 | comp                  | string           | if no `type`/`file` | References another comp by name          |
 | inPoint               | number           | no                  | In point (seconds, >= 0)                 |
@@ -256,6 +257,75 @@ Each layer must have exactly one of `type`, `file`, or `comp`.
 | castsShadows          | boolean          | no                  | Enable shadow casting                    |
 | shadowDarkness        | number           | no                  | Shadow darkness (0-100)                  |
 | shadowDiffusion       | number           | no                  | Shadow diffusion                         |
+| shapes                | array            | yes for `shape`     | Array of shapes (see below)              |
+
+#### `shapes` (Shape Layers)
+
+Shape layers support parametric shapes (rectangle, ellipse, polygon, star) with fill and stroke. Each shape layer requires a `shapes` array with at least one shape.
+
+**Shape types and properties:**
+
+| Shape Type | Required Properties | Optional Properties |
+|------------|---------------------|---------------------|
+| `rectangle` | `size: [w, h]` | `position`, `roundness`, `fill`, `stroke`, `name` |
+| `ellipse` | `size: [w, h]` | `position`, `fill`, `stroke`, `name` |
+| `polygon` | `points`, `outerRadius` | `position`, `outerRoundness`, `rotation`, `fill`, `stroke`, `name` |
+| `star` | `points`, `outerRadius`, `innerRadius` | `position`, `outerRoundness`, `innerRoundness`, `rotation`, `fill`, `stroke`, `name` |
+
+**Fill and stroke:**
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `fill.color` | string | 6-char hex color (required for fill) |
+| `fill.opacity` | number | Opacity 0-100 (default: 100) |
+| `stroke.color` | string | 6-char hex color (required for stroke) |
+| `stroke.width` | number | Stroke width (default: 1) |
+| `stroke.opacity` | number | Opacity 0-100 (default: 100) |
+
+**Example:**
+
+```yaml
+layers:
+  - name: Shape Layer
+    type: shape
+    shapes:
+      - type: rectangle
+        name: Background
+        size: [400, 200]
+        position: [0, 0]
+        roundness: 20
+        fill:
+          color: FF5500
+          opacity: 100
+        stroke:
+          color: "000000"
+          width: 2
+
+      - type: ellipse
+        name: Circle
+        size: [100, 100]
+        position: [50, 50]
+        fill:
+          color: 00FF00
+
+      - type: polygon
+        name: Triangle
+        points: 3
+        outerRadius: 50
+        fill:
+          color: 0000FF
+
+      - type: star
+        name: Star
+        points: 5
+        outerRadius: 100
+        innerRadius: 40
+        fill:
+          color: FFFF00
+```
+
+> [!NOTE]
+> Shape layers currently support parametric shapes only. Bezier paths are not yet supported.
 
 #### `effects`
 

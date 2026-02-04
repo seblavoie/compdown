@@ -1,4 +1,5 @@
 import { forEachLayer } from "../aeft-utils";
+import { readShapes } from "./shapes";
 
 /**
  * Reverse-map AE BlendingMode enum to YAML string name.
@@ -511,6 +512,12 @@ export function readLayer(layer: Layer): object {
       if (justName && justName !== "left") {
         result.justification = justName;
       }
+    }
+  } else if (layer instanceof ShapeLayer) {
+    result.type = "shape";
+    var shapes = readShapes(layer as ShapeLayer);
+    if (shapes) {
+      result.shapes = shapes;
     }
   } else if (layer.source && layer.source instanceof CompItem) {
     // Layer referencing a comp

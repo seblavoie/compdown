@@ -105,6 +105,76 @@ export const EffectSchema = z.object({
 
 export type Effect = z.infer<typeof EffectSchema>;
 
+// --- Shape Layer Schemas ---
+
+export const ShapeFillSchema = z.object({
+  color: z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF5500)"),
+  opacity: z.number().min(0).max(100).optional(),
+});
+
+export type ShapeFill = z.infer<typeof ShapeFillSchema>;
+
+export const ShapeStrokeSchema = z.object({
+  color: z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)"),
+  width: z.number().min(0).optional(),
+  opacity: z.number().min(0).max(100).optional(),
+});
+
+export type ShapeStroke = z.infer<typeof ShapeStrokeSchema>;
+
+const BaseShapeSchema = z.object({
+  name: z.string().optional(),
+  position: z.tuple([z.number(), z.number()]).optional(),
+  fill: ShapeFillSchema.optional(),
+  stroke: ShapeStrokeSchema.optional(),
+});
+
+export const RectangleShapeSchema = BaseShapeSchema.extend({
+  type: z.literal("rectangle"),
+  size: z.tuple([z.number(), z.number()]),
+  roundness: z.number().min(0).optional(),
+});
+
+export type RectangleShape = z.infer<typeof RectangleShapeSchema>;
+
+export const EllipseShapeSchema = BaseShapeSchema.extend({
+  type: z.literal("ellipse"),
+  size: z.tuple([z.number(), z.number()]),
+});
+
+export type EllipseShape = z.infer<typeof EllipseShapeSchema>;
+
+export const PolygonShapeSchema = BaseShapeSchema.extend({
+  type: z.literal("polygon"),
+  points: z.number().int().min(3),
+  outerRadius: z.number().min(0),
+  outerRoundness: z.number().min(0).optional(),
+  rotation: z.number().optional(),
+});
+
+export type PolygonShape = z.infer<typeof PolygonShapeSchema>;
+
+export const StarShapeSchema = BaseShapeSchema.extend({
+  type: z.literal("star"),
+  points: z.number().int().min(3),
+  outerRadius: z.number().min(0),
+  innerRadius: z.number().min(0),
+  outerRoundness: z.number().min(0).optional(),
+  innerRoundness: z.number().min(0).optional(),
+  rotation: z.number().optional(),
+});
+
+export type StarShape = z.infer<typeof StarShapeSchema>;
+
+export const ShapeSchema = z.discriminatedUnion("type", [
+  RectangleShapeSchema,
+  EllipseShapeSchema,
+  PolygonShapeSchema,
+  StarShapeSchema,
+]);
+
+export type Shape = z.infer<typeof ShapeSchema>;
+
 // --- Layer quality modes ---
 
 export const QualityModeSchema = z.enum(["best", "draft", "wireframe"]).optional();
@@ -162,7 +232,7 @@ export const BlendingModeSchema = z
 export const LayerSchema = z
   .object({
     name: z.string().min(1),
-    type: z.enum(["solid", "null", "adjustment", "text", "camera", "light"]).optional(),
+    type: z.enum(["solid", "null", "adjustment", "text", "camera", "light", "shape"]).optional(),
     file: z.union([z.string(), z.number()]).optional(),
     comp: z.string().optional(),
 
@@ -216,6 +286,9 @@ export const LayerSchema = z
     castsShadows: z.boolean().optional(),
     shadowDarkness: z.number().min(0).max(100).optional(),
     shadowDiffusion: z.number().min(0).optional(),
+
+    // Shape-specific
+    shapes: z.array(ShapeSchema).optional(),
 
     // Layer properties
     enabled: z.boolean().optional(),
@@ -292,6 +365,16 @@ export const LayerSchema = z
       return true;
     },
     { message: "Light layers require a 'lightType' property (parallel, spot, point, ambient)" }
+  )
+  .refine(
+    (layer) => {
+      // Shape layers require shapes array with at least one shape
+      if (layer.type === "shape" && (!layer.shapes || layer.shapes.length === 0)) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Shape layers require a 'shapes' array with at least one shape" }
   );
 
 export type Layer = z.infer<typeof LayerSchema>;
