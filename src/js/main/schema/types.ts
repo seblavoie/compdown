@@ -162,7 +162,7 @@ export const BlendingModeSchema = z
 export const LayerSchema = z
   .object({
     name: z.string().min(1),
-    type: z.enum(["solid", "null", "adjustment", "text"]).optional(),
+    type: z.enum(["solid", "null", "adjustment", "text", "camera", "light"]).optional(),
     file: z.union([z.string(), z.number()]).optional(),
     comp: z.string().optional(),
 
@@ -195,6 +195,27 @@ export const LayerSchema = z
     tracking: z.number().optional(),
     leading: z.number().positive().optional(),
     justification: z.enum(["left", "center", "right"]).optional(),
+
+    // Camera-specific
+    cameraType: z.enum(["oneNode", "twoNode"]).optional(),
+    zoom: z.number().positive().optional(),
+    depthOfField: z.boolean().optional(),
+    focusDistance: z.number().positive().optional(),
+    aperture: z.number().positive().optional(),
+    blurLevel: z.number().min(0).max(100).optional(),
+
+    // Light-specific
+    lightType: z.enum(["parallel", "spot", "point", "ambient"]).optional(),
+    intensity: z.number().min(0).optional(),
+    lightColor: z
+      .string()
+      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color")
+      .optional(),
+    coneAngle: z.number().min(0).max(180).optional(),
+    coneFeather: z.number().min(0).max(100).optional(),
+    castsShadows: z.boolean().optional(),
+    shadowDarkness: z.number().min(0).max(100).optional(),
+    shadowDiffusion: z.number().min(0).optional(),
 
     // Layer properties
     enabled: z.boolean().optional(),
@@ -261,6 +282,16 @@ export const LayerSchema = z
       return true;
     },
     { message: "Text layers require a 'text' property" }
+  )
+  .refine(
+    (layer) => {
+      // Light layers require lightType
+      if (layer.type === "light" && !layer.lightType) {
+        return false;
+      }
+      return true;
+    },
+    { message: "Light layers require a 'lightType' property (parallel, spot, point, ambient)" }
   );
 
 export type Layer = z.infer<typeof LayerSchema>;

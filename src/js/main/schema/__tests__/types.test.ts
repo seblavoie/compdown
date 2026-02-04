@@ -539,6 +539,91 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(false);
   });
 
+  it("accepts a camera layer", () => {
+    const result = LayerSchema.safeParse({
+      name: "Camera 1",
+      type: "camera",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a camera layer with properties", () => {
+    const result = LayerSchema.safeParse({
+      name: "Camera 1",
+      type: "camera",
+      cameraType: "twoNode",
+      zoom: 1000,
+      depthOfField: true,
+      focusDistance: 500,
+      aperture: 50,
+      blurLevel: 100,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects invalid camera type", () => {
+    const result = LayerSchema.safeParse({
+      name: "Camera 1",
+      type: "camera",
+      cameraType: "invalid",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts a light layer with lightType", () => {
+    const result = LayerSchema.safeParse({
+      name: "Light 1",
+      type: "light",
+      lightType: "spot",
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a light layer with all properties", () => {
+    const result = LayerSchema.safeParse({
+      name: "Light 1",
+      type: "light",
+      lightType: "spot",
+      intensity: 150,
+      lightColor: "FFFF00",
+      coneAngle: 45,
+      coneFeather: 25,
+      castsShadows: true,
+      shadowDarkness: 80,
+      shadowDiffusion: 10,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects light layer without lightType", () => {
+    const result = LayerSchema.safeParse({
+      name: "Light 1",
+      type: "light",
+    });
+    expect(result.success).toBe(false);
+    expect(result.error!.issues.some((i) => i.message.includes("lightType"))).toBe(true);
+  });
+
+  it("rejects invalid lightType", () => {
+    const result = LayerSchema.safeParse({
+      name: "Light 1",
+      type: "light",
+      lightType: "invalid",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts all light types", () => {
+    for (const lightType of ["parallel", "spot", "point", "ambient"]) {
+      const result = LayerSchema.safeParse({
+        name: "Light",
+        type: "light",
+        lightType,
+      });
+      expect(result.success).toBe(true);
+    }
+  });
+
   it("rejects an invalid hex color", () => {
     const result = LayerSchema.safeParse({
       name: "Solid",

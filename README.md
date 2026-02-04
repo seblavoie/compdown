@@ -204,7 +204,7 @@ Each layer must have exactly one of `type`, `file`, or `comp`.
 | Property              | Type             | Required            | Description                              |
 | --------------------- | ---------------- | ------------------- | ---------------------------------------- |
 | name                  | string           | yes                 | Layer name                               |
-| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`    |
+| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light` |
 | file                  | string \| number | if no `type`/`comp` | References a file `id`                   |
 | comp                  | string           | if no `type`/`file` | References another comp by name          |
 | inPoint               | number           | no                  | In point (seconds, >= 0)                 |
@@ -242,6 +242,20 @@ Each layer must have exactly one of `type`, `file`, or `comp`.
 | trackMatteType        | string           | no                  | `none`, `alpha`, `alphaInverted`, `luma`, `lumaInverted` |
 | label                 | int              | no                  | Color label index (0-16)                 |
 | transform             | object           | no                  | Transform properties (see below)         |
+| cameraType            | string           | no                  | `oneNode`, `twoNode` (for camera layers) |
+| zoom                  | number           | no                  | Camera zoom                              |
+| depthOfField          | boolean          | no                  | Enable depth of field                    |
+| focusDistance         | number           | no                  | Camera focus distance                    |
+| aperture              | number           | no                  | Camera aperture                          |
+| blurLevel             | number           | no                  | Blur level (0-100)                       |
+| lightType             | string           | yes for `light`     | `parallel`, `spot`, `point`, `ambient`   |
+| intensity             | number           | no                  | Light intensity                          |
+| lightColor            | string           | no                  | Light color (6-char hex)                 |
+| coneAngle             | number           | no                  | Spot light cone angle (0-180)            |
+| coneFeather           | number           | no                  | Spot light cone feather (0-100)          |
+| castsShadows          | boolean          | no                  | Enable shadow casting                    |
+| shadowDarkness        | number           | no                  | Shadow darkness (0-100)                  |
+| shadowDiffusion       | number           | no                  | Shadow diffusion                         |
 
 #### `effects`
 

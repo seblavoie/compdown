@@ -139,6 +139,22 @@ interface LayerDef {
   tracking?: number;
   leading?: number;
   justification?: string;
+  // Camera-specific
+  cameraType?: string;
+  zoom?: number;
+  depthOfField?: boolean;
+  focusDistance?: number;
+  aperture?: number;
+  blurLevel?: number;
+  // Light-specific
+  lightType?: string;
+  intensity?: number;
+  lightColor?: string;
+  coneAngle?: number;
+  coneFeather?: number;
+  castsShadows?: boolean;
+  shadowDarkness?: number;
+  shadowDiffusion?: number;
   enabled?: boolean;
   shy?: boolean;
   locked?: boolean;
@@ -577,6 +593,85 @@ export const createLayers = (
               }
             }
             textProp.setValue(textDoc);
+          }
+          break;
+        }
+        case "camera": {
+          var camType =
+            layerDef.cameraType === "oneNode"
+              ? CameraLayer.CameraType.ONE_NODE
+              : CameraLayer.CameraType.TWO_NODE;
+          newLayer = comp.layers.addCamera(layerDef.name, [comp.width / 2, comp.height / 2]);
+          var camLayer = newLayer as CameraLayer;
+
+          // Set camera options
+          var camOptions = camLayer.cameraOption;
+          if (layerDef.zoom !== undefined) {
+            (camOptions.property("ADBE Camera Zoom") as Property).setValue(layerDef.zoom);
+          }
+          if (layerDef.depthOfField !== undefined) {
+            (camOptions.property("ADBE Camera Depth of Field") as Property).setValue(
+              layerDef.depthOfField ? 1 : 0
+            );
+          }
+          if (layerDef.focusDistance !== undefined) {
+            (camOptions.property("ADBE Camera Focus Distance") as Property).setValue(
+              layerDef.focusDistance
+            );
+          }
+          if (layerDef.aperture !== undefined) {
+            (camOptions.property("ADBE Camera Aperture") as Property).setValue(layerDef.aperture);
+          }
+          if (layerDef.blurLevel !== undefined) {
+            (camOptions.property("ADBE Camera Blur Level") as Property).setValue(layerDef.blurLevel);
+          }
+          break;
+        }
+        case "light": {
+          var lightTypes: { [key: string]: LightType } = {
+            parallel: LightType.PARALLEL,
+            spot: LightType.SPOT,
+            point: LightType.POINT,
+            ambient: LightType.AMBIENT,
+          };
+          var lt = lightTypes[layerDef.lightType || "point"] || LightType.POINT;
+          newLayer = comp.layers.addLight(layerDef.name, [comp.width / 2, comp.height / 2]);
+          var lightLayer = newLayer as LightLayer;
+          lightLayer.lightType = lt;
+
+          // Set light options
+          var lightOptions = lightLayer.lightOption;
+          if (layerDef.intensity !== undefined) {
+            (lightOptions.property("ADBE Light Intensity") as Property).setValue(layerDef.intensity);
+          }
+          if (layerDef.lightColor) {
+            var lr = parseInt(layerDef.lightColor.substring(0, 2), 16) / 255;
+            var lg = parseInt(layerDef.lightColor.substring(2, 4), 16) / 255;
+            var lb = parseInt(layerDef.lightColor.substring(4, 6), 16) / 255;
+            (lightOptions.property("ADBE Light Color") as Property).setValue([lr, lg, lb]);
+          }
+          if (layerDef.coneAngle !== undefined) {
+            (lightOptions.property("ADBE Light Cone Angle") as Property).setValue(layerDef.coneAngle);
+          }
+          if (layerDef.coneFeather !== undefined) {
+            (lightOptions.property("ADBE Light Cone Feather 2") as Property).setValue(
+              layerDef.coneFeather
+            );
+          }
+          if (layerDef.castsShadows !== undefined) {
+            (lightOptions.property("ADBE Light Casts Shadows") as Property).setValue(
+              layerDef.castsShadows ? 1 : 0
+            );
+          }
+          if (layerDef.shadowDarkness !== undefined) {
+            (lightOptions.property("ADBE Light Shadow Darkness") as Property).setValue(
+              layerDef.shadowDarkness
+            );
+          }
+          if (layerDef.shadowDiffusion !== undefined) {
+            (lightOptions.property("ADBE Light Shadow Diffusion") as Property).setValue(
+              layerDef.shadowDiffusion
+            );
           }
           break;
         }

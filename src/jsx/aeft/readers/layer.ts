@@ -409,7 +409,72 @@ export function readLayer(layer: Layer): object {
   result.name = layer.name;
 
   // Determine type
-  if (layer instanceof TextLayer) {
+  if (layer instanceof CameraLayer) {
+    result.type = "camera";
+    var camLayer = layer as CameraLayer;
+    var camOptions = camLayer.cameraOption;
+
+    // Camera type (one-node vs two-node based on point of interest)
+    // Two-node cameras have a point of interest; one-node don't
+    try {
+      var poi = layer.property("ADBE Camera Options Group").property("ADBE Camera Point of Interest");
+      result.cameraType = poi ? "twoNode" : "oneNode";
+    } catch (e) {
+      result.cameraType = "twoNode"; // default
+    }
+
+    var zoom = camOptions.property("ADBE Camera Zoom") as Property;
+    if (zoom) result.zoom = Math.round(zoom.value as number);
+
+    var dof = camOptions.property("ADBE Camera Depth of Field") as Property;
+    if (dof && dof.value === 1) result.depthOfField = true;
+
+    var focusDist = camOptions.property("ADBE Camera Focus Distance") as Property;
+    if (focusDist) result.focusDistance = Math.round(focusDist.value as number);
+
+    var aperture = camOptions.property("ADBE Camera Aperture") as Property;
+    if (aperture) result.aperture = Math.round((aperture.value as number) * 10) / 10;
+
+    var blurLevel = camOptions.property("ADBE Camera Blur Level") as Property;
+    if (blurLevel && blurLevel.value !== 100) result.blurLevel = blurLevel.value;
+  } else if (layer instanceof LightLayer) {
+    result.type = "light";
+    var lightLayer = layer as LightLayer;
+    var lightOptions = lightLayer.lightOption;
+
+    // Light type
+    var lightTypeNames: { [key: number]: string } = {};
+    lightTypeNames[LightType.PARALLEL] = "parallel";
+    lightTypeNames[LightType.SPOT] = "spot";
+    lightTypeNames[LightType.POINT] = "point";
+    lightTypeNames[LightType.AMBIENT] = "ambient";
+    result.lightType = lightTypeNames[lightLayer.lightType as number] || "point";
+
+    var intensity = lightOptions.property("ADBE Light Intensity") as Property;
+    if (intensity && intensity.value !== 100) result.intensity = intensity.value;
+
+    var lightColor = lightOptions.property("ADBE Light Color") as Property;
+    if (lightColor) {
+      var lc = lightColor.value as number[];
+      var lcHex = toHex(lc[0]) + toHex(lc[1]) + toHex(lc[2]);
+      if (lcHex !== "ffffff") result.lightColor = lcHex;
+    }
+
+    var coneAngle = lightOptions.property("ADBE Light Cone Angle") as Property;
+    if (coneAngle && coneAngle.value !== 90) result.coneAngle = coneAngle.value;
+
+    var coneFeather = lightOptions.property("ADBE Light Cone Feather 2") as Property;
+    if (coneFeather && coneFeather.value !== 50) result.coneFeather = coneFeather.value;
+
+    var castsShadows = lightOptions.property("ADBE Light Casts Shadows") as Property;
+    if (castsShadows && castsShadows.value === 1) result.castsShadows = true;
+
+    var shadowDarkness = lightOptions.property("ADBE Light Shadow Darkness") as Property;
+    if (shadowDarkness && shadowDarkness.value !== 100) result.shadowDarkness = shadowDarkness.value;
+
+    var shadowDiffusion = lightOptions.property("ADBE Light Shadow Diffusion") as Property;
+    if (shadowDiffusion && shadowDiffusion.value !== 0) result.shadowDiffusion = shadowDiffusion.value;
+  } else if (layer instanceof TextLayer) {
     result.type = "text";
     var textProp = layer
       .property("ADBE Text Properties")

@@ -74,8 +74,9 @@ Create rectangles, ellipses, and custom paths via YAML.
 **Status:** Done
 Link properties with AE expressions via `expressions` object on transform and effects.
 
-### 3D camera/lights
-Create camera and light layers.
+### ~~3D camera/lights~~
+**Status:** Done
+Create camera and light layers with full property support.
 
 ### Masks/paths
 Add masks to layers with animatable paths.
