@@ -91,8 +91,11 @@ interface TransformExpressionsDef {
   position?: string;
   positionX?: string;
   positionY?: string;
+  positionZ?: string;
   scale?: string;
   rotation?: string;
+  rotationX?: string;
+  rotationY?: string;
   opacity?: string;
 }
 
@@ -101,8 +104,11 @@ interface TransformDef {
   position?: [number, number] | KeyframeDef[];
   positionX?: number | KeyframeDef[];
   positionY?: number | KeyframeDef[];
+  positionZ?: number | KeyframeDef[];
   scale?: [number, number] | KeyframeDef[];
   rotation?: number | KeyframeDef[];
+  rotationX?: number | KeyframeDef[];
+  rotationY?: number | KeyframeDef[];
   opacity?: number | KeyframeDef[];
   expressions?: TransformExpressionsDef;
 }
@@ -401,7 +407,7 @@ function applyTransform(layer: Layer, transform: TransformDef): void {
     }
   }
   // Handle separate position dimensions
-  if (transform.positionX !== undefined || transform.positionY !== undefined) {
+  if (transform.positionX !== undefined || transform.positionY !== undefined || transform.positionZ !== undefined) {
     var posProp = group.property("ADBE Position") as Property;
     posProp.dimensionsSeparated = true;
 
@@ -423,6 +429,17 @@ function applyTransform(layer: Layer, transform: TransformDef): void {
         posY.setValue(transform.positionY);
       }
     }
+    if (transform.positionZ !== undefined) {
+      // positionZ requires 3D layer and separated dimensions
+      layer.threeDLayer = true;
+      var posZ = group.property("ADBE Position_2") as Property;
+      if (isKeyframeArray(transform.positionZ)) {
+        applyKeyframes(posZ, transform.positionZ);
+      } else {
+        //@ts-ignore
+        posZ.setValue(transform.positionZ);
+      }
+    }
   }
   if (transform.scale) {
     var sc = group.property("ADBE Scale") as Property;
@@ -442,6 +459,27 @@ function applyTransform(layer: Layer, transform: TransformDef): void {
       rot.setValue(transform.rotation);
     }
   }
+  // Handle 3D rotation properties
+  if (transform.rotationX !== undefined) {
+    layer.threeDLayer = true;
+    var rotX = group.property("ADBE Rotate X") as Property;
+    if (isKeyframeArray(transform.rotationX)) {
+      applyKeyframes(rotX, transform.rotationX);
+    } else {
+      //@ts-ignore
+      rotX.setValue(transform.rotationX);
+    }
+  }
+  if (transform.rotationY !== undefined) {
+    layer.threeDLayer = true;
+    var rotY = group.property("ADBE Rotate Y") as Property;
+    if (isKeyframeArray(transform.rotationY)) {
+      applyKeyframes(rotY, transform.rotationY);
+    } else {
+      //@ts-ignore
+      rotY.setValue(transform.rotationY);
+    }
+  }
   if (transform.opacity !== undefined) {
     var op = group.property("ADBE Opacity") as Property;
     if (isKeyframeArray(transform.opacity)) {
@@ -459,8 +497,11 @@ function applyTransform(layer: Layer, transform: TransformDef): void {
       position: "ADBE Position",
       positionX: "ADBE Position_0",
       positionY: "ADBE Position_1",
+      positionZ: "ADBE Position_2",
       scale: "ADBE Scale",
       rotation: "ADBE Rotate Z",
+      rotationX: "ADBE Rotate X",
+      rotationY: "ADBE Rotate Y",
       opacity: "ADBE Opacity",
     };
 

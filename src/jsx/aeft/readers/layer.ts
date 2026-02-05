@@ -318,6 +318,18 @@ function readTransform(layer: Layer): object | null {
         transform.positionY = Math.round(posY.value as number);
         hasValues = true;
       }
+
+      // Read positionZ for 3D layers with separated dimensions
+      if (layer.threeDLayer) {
+        var posZ = group.property("ADBE Position_2") as Property;
+        if (posZ && posZ.numKeys > 0) {
+          transform.positionZ = readKeyframes(posZ);
+          hasValues = true;
+        } else if (posZ && posZ.value !== 0) {
+          transform.positionZ = Math.round(posZ.value as number);
+          hasValues = true;
+        }
+      }
     } else {
       if (pos.numKeys > 0) {
         transform.position = readKeyframes(pos);
@@ -356,6 +368,31 @@ function readTransform(layer: Layer): object | null {
     }
   }
 
+  // Read 3D rotation properties (only for 3D layers)
+  if (layer.threeDLayer) {
+    var rotationX = group.property("ADBE Rotate X") as Property;
+    if (rotationX) {
+      if (rotationX.numKeys > 0) {
+        transform.rotationX = readKeyframes(rotationX);
+        hasValues = true;
+      } else if (rotationX.value !== 0) {
+        transform.rotationX = rotationX.value;
+        hasValues = true;
+      }
+    }
+
+    var rotationY = group.property("ADBE Rotate Y") as Property;
+    if (rotationY) {
+      if (rotationY.numKeys > 0) {
+        transform.rotationY = readKeyframes(rotationY);
+        hasValues = true;
+      } else if (rotationY.value !== 0) {
+        transform.rotationY = rotationY.value;
+        hasValues = true;
+      }
+    }
+  }
+
   var opacity = group.property("ADBE Opacity") as Property;
   if (opacity) {
     if (opacity.numKeys > 0) {
@@ -376,8 +413,11 @@ function readTransform(layer: Layer): object | null {
     "ADBE Position": "position",
     "ADBE Position_0": "positionX",
     "ADBE Position_1": "positionY",
+    "ADBE Position_2": "positionZ",
     "ADBE Scale": "scale",
     "ADBE Rotate Z": "rotation",
+    "ADBE Rotate X": "rotationX",
+    "ADBE Rotate Y": "rotationY",
     "ADBE Opacity": "opacity",
   };
 

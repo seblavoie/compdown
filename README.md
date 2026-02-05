@@ -202,62 +202,99 @@ compositions:
 
 Each layer must have exactly one of `type`, `file`, or `comp`.
 
-| Property              | Type             | Required            | Description                              |
-| --------------------- | ---------------- | ------------------- | ---------------------------------------- |
-| name                  | string           | yes                 | Layer name                               |
-| type                  | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape` |
-| file                  | string \| number | if no `type`/`comp` | References a file `id`                   |
-| comp                  | string           | if no `type`/`file` | References another comp by name          |
-| inPoint               | number           | no                  | In point (seconds, >= 0)                 |
-| outPoint              | number           | no                  | Out point (seconds, >= 0)                |
-| startTime             | number           | no                  | Start time offset                        |
-| width                 | int              | no                  | Solid width                              |
-| height                | int              | no                  | Solid height                             |
-| color                 | string           | yes for `solid`     | 6-char hex color (e.g. `FF0000`)         |
-| text                  | string           | yes for `text`      | Text content                             |
-| fontSize              | number           | no                  | Font size                                |
-| font                  | string           | no                  | Font family name                         |
-| fillColor             | string           | no                  | Text fill color (6-char hex)             |
-| strokeColor           | string           | no                  | Text stroke color (6-char hex)           |
-| strokeWidth           | number           | no                  | Text stroke width                        |
-| tracking              | number           | no                  | Character spacing                        |
-| leading               | number           | no                  | Line spacing                             |
-| justification         | string           | no                  | `left`, `center`, `right`                |
-| enabled               | boolean          | no                  | Layer visibility                         |
-| shy                   | boolean          | no                  | Shy flag                                 |
-| locked                | boolean          | no                  | Lock flag                                |
-| threeDLayer           | boolean          | no                  | Enable 3D                                |
-| solo                  | boolean          | no                  | Solo the layer                           |
-| audioEnabled          | boolean          | no                  | Enable/disable audio                     |
-| motionBlur            | boolean          | no                  | Enable motion blur                       |
-| collapseTransformation| boolean          | no                  | Continuously rasterize / collapse        |
-| guideLayer            | boolean          | no                  | Mark as guide layer                      |
-| effectsActive         | boolean          | no                  | Global effects toggle                    |
-| timeRemapEnabled      | boolean          | no                  | Enable time remapping                    |
-| parent                | string           | no                  | Parent layer name                        |
-| blendingMode          | string           | no                  | Blending mode (see list below)           |
-| quality               | string           | no                  | `best`, `draft`, `wireframe`             |
-| samplingQuality       | string           | no                  | `bicubic`, `bilinear`                    |
-| autoOrient            | string           | no                  | `off`, `alongPath`, `cameraOrPointOfInterest` |
-| frameBlendingType     | string           | no                  | `none`, `frameMix`, `pixelMotion`        |
-| trackMatteType        | string           | no                  | `none`, `alpha`, `alphaInverted`, `luma`, `lumaInverted` |
-| label                 | int              | no                  | Color label index (0-16)                 |
-| transform             | object           | no                  | Transform properties (see below)         |
-| cameraType            | string           | no                  | `oneNode`, `twoNode` (for camera layers) |
-| zoom                  | number           | no                  | Camera zoom                              |
-| depthOfField          | boolean          | no                  | Enable depth of field                    |
-| focusDistance         | number           | no                  | Camera focus distance                    |
-| aperture              | number           | no                  | Camera aperture                          |
-| blurLevel             | number           | no                  | Blur level (0-100)                       |
-| lightType             | string           | yes for `light`     | `parallel`, `spot`, `point`, `ambient`   |
-| intensity             | number           | no                  | Light intensity                          |
-| lightColor            | string           | no                  | Light color (6-char hex)                 |
-| coneAngle             | number           | no                  | Spot light cone angle (0-180)            |
-| coneFeather           | number           | no                  | Spot light cone feather (0-100)          |
-| castsShadows          | boolean          | no                  | Enable shadow casting                    |
-| shadowDarkness        | number           | no                  | Shadow darkness (0-100)                  |
-| shadowDiffusion       | number           | no                  | Shadow diffusion                         |
-| shapes                | array            | yes for `shape`     | Array of shapes (see below)              |
+##### Core identity and source
+
+| Property  | Type             | Required            | Description                              |
+| --------- | ---------------- | ------------------- | ---------------------------------------- |
+| name      | string           | yes                 | Layer name                               |
+| type      | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape` |
+| file      | string \| number | if no `type`/`comp` | References a file `id`                   |
+| comp      | string           | if no `type`/`file` | References another comp by name          |
+| transform | object           | no                  | Transform properties (see below)         |
+
+##### Timing and placement
+
+| Property  | Type   | Required | Description              |
+| --------- | ------ | -------- | ------------------------ |
+| inPoint   | number | no       | In point (seconds, >= 0) |
+| outPoint  | number | no       | Out point (seconds, >= 0)  |
+| startTime | number | no       | Start time offset        |
+| label     | int    | no       | Color label index (0-16) |
+
+##### Type-specific (solid and text)
+
+| Property      | Type   | Required        | Description                      |
+| ------------- | ------ | --------------- | -------------------------------- |
+| width         | int    | no              | Solid width                      |
+| height        | int    | no              | Solid height                     |
+| color         | string | yes for `solid` | 6-char hex color (e.g. `FF0000`) |
+| text          | string | yes for `text`  | Text content                     |
+| fontSize      | number | no              | Font size                        |
+| font          | string | no              | Font family name                 |
+| fillColor     | string | no              | Text fill color (6-char hex)     |
+| strokeColor   | string | no              | Text stroke color (6-char hex)   |
+| strokeWidth   | number | no              | Text stroke width                |
+| tracking      | number | no              | Character spacing                |
+| leading       | number | no              | Line spacing                     |
+| justification | string | no              | `left`, `center`, `right`        |
+
+##### Layer switches and toggles
+
+| Property               | Type    | Required | Description                           |
+| ---------------------- | ------- | -------- | ------------------------------------- |
+| enabled                | boolean | no       | Layer visibility                      |
+| shy                    | boolean | no       | Shy flag                              |
+| locked                 | boolean | no       | Lock flag                             |
+| threeDLayer            | boolean | no       | Enable 3D                             |
+| solo                   | boolean | no       | Solo the layer                        |
+| audioEnabled           | boolean | no       | Enable/disable audio                  |
+| motionBlur             | boolean | no       | Enable motion blur                    |
+| collapseTransformation | boolean | no       | Continuously rasterize / collapse     |
+| guideLayer             | boolean | no       | Mark as guide layer                   |
+| effectsActive          | boolean | no       | Global effects toggle                 |
+| timeRemapEnabled       | boolean | no       | Enable time remapping                 |
+
+##### Parenting and render behavior
+
+| Property          | Type   | Required | Description                                             |
+| ----------------- | ------ | -------- | ------------------------------------------------------- |
+| parent            | string | no       | Parent layer name                                       |
+| blendingMode      | string | no       | Blending mode (see list below)                          |
+| quality           | string | no       | `best`, `draft`, `wireframe`                            |
+| samplingQuality   | string | no       | `bicubic`, `bilinear`                                   |
+| autoOrient        | string | no       | `off`, `alongPath`, `cameraOrPointOfInterest`           |
+| frameBlendingType | string | no       | `none`, `frameMix`, `pixelMotion`                       |
+| trackMatteType    | string | no       | `none`, `alpha`, `alphaInverted`, `luma`, `lumaInverted` |
+
+##### Camera-specific
+
+| Property      | Type    | Required | Description                              |
+| ------------- | ------- | -------- | ---------------------------------------- |
+| cameraType    | string  | no       | `oneNode`, `twoNode` (for camera layers) |
+| zoom          | number  | no       | Camera zoom                              |
+| depthOfField  | boolean | no       | Enable depth of field                    |
+| focusDistance | number  | no       | Camera focus distance                    |
+| aperture      | number  | no       | Camera aperture                          |
+| blurLevel     | number  | no       | Blur level (0-100)                       |
+
+##### Light-specific
+
+| Property       | Type    | Required        | Description                            |
+| -------------- | ------- | --------------- | -------------------------------------- |
+| lightType      | string  | yes for `light` | `parallel`, `spot`, `point`, `ambient` |
+| intensity      | number  | no              | Light intensity                        |
+| lightColor     | string  | no              | Light color (6-char hex)               |
+| coneAngle      | number  | no              | Spot light cone angle (0-180)          |
+| coneFeather    | number  | no              | Spot light cone feather (0-100)        |
+| castsShadows   | boolean | no              | Enable shadow casting                  |
+| shadowDarkness | number  | no              | Shadow darkness (0-100)                |
+| shadowDiffusion | number  | no              | Shadow diffusion                       |
+
+##### Shape-layer specific
+
+| Property | Type  | Required         | Description                 |
+| -------- | ----- | ---------------- | --------------------------- |
+| shapes   | array | yes for `shape`  | Array of shapes (see below) |
 
 #### `shapes` (Shape Layers)
 
@@ -376,11 +413,14 @@ Each transform property accepts either a static value or an array of keyframes (
 | position    | [x, y]      | [x, y]         | Position (combined X/Y)        |
 | positionX   | number      | number         | X position (separate)          |
 | positionY   | number      | number         | Y position (separate)          |
+| positionZ   | number      | number         | Z position (3D layers)         |
 | scale       | [x, y]      | [x, y]         | Scale (percent)                |
-| rotation    | number      | number         | Rotation (degrees)             |
+| rotation    | number      | number         | Z Rotation (degrees)           |
+| rotationX   | number      | number         | X Rotation (3D layers)         |
+| rotationY   | number      | number         | Y Rotation (3D layers)         |
 | opacity     | number      | number (0-100) | Opacity                        |
 
-> **Note:** Use either `position` OR `positionX`/`positionY`, not both. Separate dimensions allow independent easing per axis.
+> **Note:** Use either `position` OR `positionX`/`positionY`/`positionZ`, not both. Separate dimensions allow independent easing per axis. Using `positionZ`, `rotationX`, or `rotationY` automatically enables the layer's 3D switch.
 
 **Keyframe syntax**: each keyframe is an object with `time` (seconds, >= 0), `value`, and optional `easing`. You can mix static and keyframed properties on the same layer.
 
@@ -459,21 +499,29 @@ Expose layer properties to the Essential Graphics Panel for creating Motion Grap
 
 **Two forms are supported:**
 
-Simple form (string path, uses AE's default property name):
+Simple form (string path, uses property path as display name):
 ```yaml
 essentialGraphics:
   - title.transform.position
   - title.text
 ```
 
-Expanded form (custom display name):
+Expanded form (custom display name and options):
 ```yaml
 essentialGraphics:
   - property: title.transform.position
     name: "Logo Position"
   - property: title.text
     name: "Headline"
+  - property: bar.transform.opacity
+    encodePathInName: false  # Disable round-trip encoding
 ```
+
+| Property        | Type    | Required | Description                                |
+|-----------------|---------|----------|--------------------------------------------|
+| property        | string  | yes      | Property path (e.g. `layer.transform.position`) |
+| name            | string  | no       | Custom display name (defaults to property path) |
+| encodePathInName| boolean | no       | Encode property path for round-trip (default: true) |
 
 **Property path format:** `layerName.propertyPath`
 
@@ -512,10 +560,26 @@ compositions:
         name: "Bar Blur"
 ```
 
+**Round-trip support:**
+
+By default, Compdown encodes the property path in the controller name (format: `Display Name [path:layer.transform.position]`). This allows exported YAML to include the full property path, enabling true round-trip workflows:
+
+1. Create a comp from YAML with Essential Graphics entries
+2. Export the comp back to YAML
+3. The exported YAML includes both the property path and display name
+
+To disable this encoding (for cleaner controller names in Premiere):
+```yaml
+essentialGraphics:
+  - property: title.text
+    name: "Headline"
+    encodePathInName: false  # Controller name will be just "Headline"
+```
+
 > [!NOTE]
 > - Not all properties can be added to the Essential Graphics Panel. Compdown checks `canAddToMotionGraphicsTemplate()` and skips unsupported properties silently.
 > - `addToMotionGraphicsTemplateAs()` (custom names) requires After Effects CC 2019 (16.1) or later.
-> - When exporting a comp back to YAML, only the controller names are exported (the AE API doesn't expose the original property paths).
+> - Legacy Essential Graphics entries (created manually or without path encoding) export as name-only objects.
 
 ## Architecture
 

@@ -287,6 +287,87 @@ describe("TransformSchema (keyframes)", () => {
     });
     expect(result.success).toBe(false);
   });
+
+  it("accepts positionZ for 3D layers", () => {
+    const result = Schema.safeParse({
+      positionX: 960,
+      positionY: 540,
+      positionZ: -100,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed positionZ", () => {
+    const result = Schema.safeParse({
+      positionZ: [
+        { time: 0, value: 0 },
+        { time: 2, value: -500 },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects position with positionZ", () => {
+    const result = Schema.safeParse({
+      position: [960, 540],
+      positionZ: -100,
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("accepts rotationX and rotationY for 3D layers", () => {
+    const result = Schema.safeParse({
+      rotationX: 45,
+      rotationY: -30,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed rotationX with easing", () => {
+    const result = Schema.safeParse({
+      rotationX: [
+        { time: 0, value: 0, easing: "easeOut" },
+        { time: 2, value: 90, easing: "easeIn" },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed rotationY", () => {
+    const result = Schema.safeParse({
+      rotationY: [
+        { time: 0, value: 0 },
+        { time: 3, value: 360 },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts combined 3D position and rotation", () => {
+    const result = Schema.safeParse({
+      positionX: 960,
+      positionY: 540,
+      positionZ: -200,
+      rotation: 45,
+      rotationX: 30,
+      rotationY: -15,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts expressions on 3D properties", () => {
+    const result = Schema.safeParse({
+      positionZ: 0,
+      rotationX: 0,
+      rotationY: 0,
+      expressions: {
+        positionZ: "Math.sin(time) * 100",
+        rotationX: "time * 36",
+        rotationY: "wiggle(1, 10)",
+      },
+    });
+    expect(result.success).toBe(true);
+  });
 });
 
 // ---------------------------------------------------------------------------
@@ -1745,11 +1826,44 @@ describe("EssentialGraphicsItemSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects object with missing name", () => {
+  it("accepts object with property only (no name)", () => {
     const result = EssentialGraphicsItemSchema.safeParse({
       property: "title.transform.position",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts object with encodePathInName: false", () => {
+    const result = EssentialGraphicsItemSchema.safeParse({
+      property: "title.transform.position",
+      name: "Logo Position",
+      encodePathInName: false,
+    });
+    expect(result.success).toBe(true);
+    if (result.success) {
+      expect(result.data).toEqual({
+        property: "title.transform.position",
+        name: "Logo Position",
+        encodePathInName: false,
+      });
+    }
+  });
+
+  it("accepts object with encodePathInName: true", () => {
+    const result = EssentialGraphicsItemSchema.safeParse({
+      property: "title.transform.position",
+      name: "Logo Position",
+      encodePathInName: true,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts object with property and encodePathInName (no name)", () => {
+    const result = EssentialGraphicsItemSchema.safeParse({
+      property: "title.text",
+      encodePathInName: false,
+    });
+    expect(result.success).toBe(true);
   });
 });
 

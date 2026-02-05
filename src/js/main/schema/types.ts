@@ -33,8 +33,11 @@ export const TransformExpressionsSchema = z.object({
   position: z.string().optional(),
   positionX: z.string().optional(),
   positionY: z.string().optional(),
+  positionZ: z.string().optional(),
   scale: z.string().optional(),
   rotation: z.string().optional(),
+  rotationX: z.string().optional(),
+  rotationY: z.string().optional(),
   opacity: z.string().optional(),
 }).strict().optional();
 
@@ -52,10 +55,19 @@ export const TransformSchema = z
     positionY: z
       .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
       .optional(),
+    positionZ: z
+      .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
+      .optional(),
     scale: z
       .union([z.tuple([z.number(), z.number()]), z.array(TupleKeyframeSchema).min(2)])
       .optional(),
     rotation: z
+      .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
+      .optional(),
+    rotationX: z
+      .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
+      .optional(),
+    rotationY: z
       .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
       .optional(),
     opacity: z
@@ -66,13 +78,13 @@ export const TransformSchema = z
   .strict()
   .refine(
     (t) => {
-      // Can't use both position and positionX/positionY
-      if (t.position !== undefined && (t.positionX !== undefined || t.positionY !== undefined)) {
+      // Can't use both position and positionX/positionY/positionZ
+      if (t.position !== undefined && (t.positionX !== undefined || t.positionY !== undefined || t.positionZ !== undefined)) {
         return false;
       }
       return true;
     },
-    { message: "Cannot use 'position' together with 'positionX' or 'positionY'" }
+    { message: "Cannot use 'position' together with 'positionX', 'positionY', or 'positionZ'" }
   )
   .optional();
 
@@ -385,7 +397,8 @@ export const EssentialGraphicsItemSchema = z.union([
   z.string().min(1), // Simple form: "layer.transform.position"
   z.object({
     property: z.string().min(1),
-    name: z.string().min(1),
+    name: z.string().min(1).optional(), // Optional: uses property path as display name if not specified
+    encodePathInName: z.boolean().optional(), // Set to false to disable path encoding in controller name
   }),
 ]);
 

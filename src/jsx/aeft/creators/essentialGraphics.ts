@@ -6,6 +6,7 @@
 interface EssentialGraphicsDef {
   property: string;
   name?: string;
+  encodePathInName?: boolean;
 }
 
 /**
@@ -91,6 +92,14 @@ function resolvePropertyPath(comp: CompItem, path: string): Property | null {
 }
 
 /**
+ * Encode property path into controller name for round-trip support.
+ * Format: "Display Name [path:layer.transform.position]"
+ */
+function encodePropertyPath(displayName: string, propertyPath: string): string {
+  return displayName + " [path:" + propertyPath + "]";
+}
+
+/**
  * Normalize an essential graphics item to the expanded form.
  */
 function normalizeItem(item: string | EssentialGraphicsDef): EssentialGraphicsDef {
@@ -122,11 +131,18 @@ export function addEssentialGraphics(
       continue;
     }
 
-    // Add to Motion Graphics Template with optional custom name
-    if (item.name) {
-      prop.addToMotionGraphicsTemplateAs(comp, item.name);
+    // Determine display name and whether to encode path
+    var displayName = item.name || item.property;
+    var shouldEncode = item.encodePathInName !== false; // Default is true
+
+    // Add to Motion Graphics Template
+    if (shouldEncode) {
+      // Encode property path in the controller name for round-trip support
+      var encodedName = encodePropertyPath(displayName, item.property);
+      prop.addToMotionGraphicsTemplateAs(comp, encodedName);
     } else {
-      prop.addToMotionGraphicsTemplate(comp);
+      // Use name as-is without path encoding
+      prop.addToMotionGraphicsTemplateAs(comp, displayName);
     }
   }
 }
