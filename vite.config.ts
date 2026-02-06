@@ -3,14 +3,18 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 import { cep, CepOptions, runAction } from "vite-cep-plugin";
-import cepConfig from "./cep.config";
+import getCepConfig from "./cep.config";
 import path from "path";
 import { extendscriptConfig } from "./vite.es.config";
 
 const extensions = [".js", ".ts", ".tsx"];
 
+const cepConfig = getCepConfig();
+
 const devDist = "dist";
-const cepDist = "cep";
+const isDevExtension =
+  process.env.CEP_DEV_BUILD === "true";
+const cepDist = isDevExtension ? "cep-dev" : "cep";
 
 const src = path.resolve(__dirname, "src");
 const root = path.resolve(src, "js");

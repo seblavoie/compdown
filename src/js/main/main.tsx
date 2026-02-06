@@ -6,6 +6,7 @@ import { createInAE, generateFromAE } from "./lib/bridge";
 import { YamlEditor } from "./components/YamlEditor";
 import { Toolbar } from "./components/Toolbar";
 import { ErrorPanel } from "./components/ErrorPanel";
+import { isDevBuild } from "../../shared/shared";
 import "./main.scss";
 
 export const App = () => {
@@ -110,6 +111,7 @@ export const App = () => {
 
   return (
     <div className="app" style={{ backgroundColor: bgColor }}>
+      {isDevBuild ? <div className="dev-badge">DEV</div> : null}
       <Toolbar
         onCreate={handleCreate}
         onGenerate={handleGenerate}
