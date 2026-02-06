@@ -2,51 +2,57 @@
  * Shape definitions from YAML.
  */
 
+interface KeyframeDef {
+  time: number;
+  value: number | [number, number] | [number, number, number];
+  easing?: string;
+}
+
 interface ShapeFillDef {
-  color: string;
-  opacity?: number;
+  color: string | KeyframeDef[];
+  opacity?: number | KeyframeDef[];
 }
 
 interface ShapeStrokeDef {
-  color: string;
-  width?: number;
-  opacity?: number;
+  color: string | KeyframeDef[];
+  width?: number | KeyframeDef[];
+  opacity?: number | KeyframeDef[];
 }
 
 interface BaseShapeDef {
   name?: string;
-  position?: [number, number];
+  position?: [number, number] | KeyframeDef[];
   fill?: ShapeFillDef;
   stroke?: ShapeStrokeDef;
 }
 
 interface RectangleShapeDef extends BaseShapeDef {
   type: "rectangle";
-  size: [number, number];
-  roundness?: number;
+  size: [number, number] | KeyframeDef[];
+  roundness?: number | KeyframeDef[];
 }
 
 interface EllipseShapeDef extends BaseShapeDef {
   type: "ellipse";
-  size: [number, number];
+  size: [number, number] | KeyframeDef[];
 }
 
 interface PolygonShapeDef extends BaseShapeDef {
   type: "polygon";
-  points: number;
-  outerRadius: number;
-  outerRoundness?: number;
-  rotation?: number;
+  points: number | KeyframeDef[];
+  outerRadius: number | KeyframeDef[];
+  outerRoundness?: number | KeyframeDef[];
+  rotation?: number | KeyframeDef[];
 }
 
 interface StarShapeDef extends BaseShapeDef {
   type: "star";
-  points: number;
-  outerRadius: number;
-  innerRadius: number;
-  outerRoundness?: number;
-  innerRoundness?: number;
-  rotation?: number;
+  points: number | KeyframeDef[];
+  outerRadius: number | KeyframeDef[];
+  innerRadius: number | KeyframeDef[];
+  outerRoundness?: number | KeyframeDef[];
+  innerRoundness?: number | KeyframeDef[];
+  rotation?: number | KeyframeDef[];
 }
 
 type ShapeDef = RectangleShapeDef | EllipseShapeDef | PolygonShapeDef | StarShapeDef;
@@ -62,18 +68,113 @@ function hexToRgb(hex: string): [number, number, number] {
 }
 
 /**
+ * Check if a value is an array of keyframe objects (has `time` property)
+ * rather than a numeric tuple like [100, 200].
+ */
+function isKeyframeArray(val: any): val is KeyframeDef[] {
+  if (!(val instanceof Array) || val.length === 0) return false;
+  return typeof val[0] === "object" && val[0] !== null && "time" in val[0];
+}
+
+/**
+ * Apply easing to a keyframe.
+ * @param prop The property containing the keyframe
+ * @param keyIndex 1-based keyframe index
+ * @param easing The easing type: "linear", "easeIn", "easeOut", "easeInOut", "hold"
+ */
+function applyEasing(prop: Property, keyIndex: number, easing: string): void {
+  if (easing === "hold") {
+    prop.setInterpolationTypeAtKey(
+      keyIndex,
+      KeyframeInterpolationType.HOLD,
+      KeyframeInterpolationType.HOLD
+    );
+    return;
+  }
+
+  if (easing === "linear") {
+    prop.setInterpolationTypeAtKey(
+      keyIndex,
+      KeyframeInterpolationType.LINEAR,
+      KeyframeInterpolationType.LINEAR
+    );
+    return;
+  }
+
+  // For bezier easing, we need to determine the number of dimensions
+  var keyVal = prop.keyValue(keyIndex);
+  var dimensions = 1;
+  if (keyVal instanceof Array) {
+    dimensions = keyVal.length;
+  }
+
+  // Create ease objects for each dimension
+  var easeInfluence = 33.33;
+  var linearEase: KeyframeEase[] = [];
+  var easedEase: KeyframeEase[] = [];
+
+  for (var d = 0; d < dimensions; d++) {
+    linearEase.push(new KeyframeEase(0, 0.1));
+    easedEase.push(new KeyframeEase(0, easeInfluence));
+  }
+
+  // Set interpolation type to bezier first
+  prop.setInterpolationTypeAtKey(
+    keyIndex,
+    KeyframeInterpolationType.BEZIER,
+    KeyframeInterpolationType.BEZIER
+  );
+
+  // Apply the appropriate ease
+  if (easing === "easeIn") {
+    prop.setTemporalEaseAtKey(keyIndex, easedEase, linearEase);
+  } else if (easing === "easeOut") {
+    prop.setTemporalEaseAtKey(keyIndex, linearEase, easedEase);
+  } else if (easing === "easeInOut") {
+    prop.setTemporalEaseAtKey(keyIndex, easedEase, easedEase);
+  }
+}
+
+/**
+ * Apply keyframes to a property.
+ */
+function applyKeyframes(prop: Property, keyframes: KeyframeDef[]): void {
+  // First pass: set all keyframe values
+  for (var k = 0; k < keyframes.length; k++) {
+    prop.setValueAtTime(keyframes[k].time, keyframes[k].value);
+  }
+
+  // Second pass: apply easing (keyframe indices are 1-based in AE)
+  for (var k = 0; k < keyframes.length; k++) {
+    var easing = keyframes[k].easing;
+    if (easing) {
+      applyEasing(prop, k + 1, easing);
+    }
+  }
+}
+
+/**
  * Add a fill to a shape group.
  */
 function addFill(groupContents: PropertyGroup, fillDef: ShapeFillDef): void {
   var fill = groupContents.addProperty("ADBE Vector Graphic - Fill") as PropertyGroup;
-  var color = fill.property("ADBE Vector Fill Color") as Property;
-  //@ts-ignore
-  color.setValue(hexToRgb(fillDef.color));
+  var colorProp = fill.property("ADBE Vector Fill Color") as Property;
+
+  if (isKeyframeArray(fillDef.color)) {
+    applyKeyframes(colorProp, fillDef.color);
+  } else {
+    //@ts-ignore
+    colorProp.setValue(hexToRgb(fillDef.color as string));
+  }
 
   if (fillDef.opacity !== undefined) {
-    var opacity = fill.property("ADBE Vector Fill Opacity") as Property;
-    //@ts-ignore
-    opacity.setValue(fillDef.opacity);
+    var opacityProp = fill.property("ADBE Vector Fill Opacity") as Property;
+    if (isKeyframeArray(fillDef.opacity)) {
+      applyKeyframes(opacityProp, fillDef.opacity);
+    } else {
+      //@ts-ignore
+      opacityProp.setValue(fillDef.opacity);
+    }
   }
 }
 
@@ -82,20 +183,33 @@ function addFill(groupContents: PropertyGroup, fillDef: ShapeFillDef): void {
  */
 function addStroke(groupContents: PropertyGroup, strokeDef: ShapeStrokeDef): void {
   var stroke = groupContents.addProperty("ADBE Vector Graphic - Stroke") as PropertyGroup;
-  var color = stroke.property("ADBE Vector Stroke Color") as Property;
-  //@ts-ignore
-  color.setValue(hexToRgb(strokeDef.color));
+  var colorProp = stroke.property("ADBE Vector Stroke Color") as Property;
+
+  if (isKeyframeArray(strokeDef.color)) {
+    applyKeyframes(colorProp, strokeDef.color);
+  } else {
+    //@ts-ignore
+    colorProp.setValue(hexToRgb(strokeDef.color as string));
+  }
 
   if (strokeDef.width !== undefined) {
-    var width = stroke.property("ADBE Vector Stroke Width") as Property;
-    //@ts-ignore
-    width.setValue(strokeDef.width);
+    var widthProp = stroke.property("ADBE Vector Stroke Width") as Property;
+    if (isKeyframeArray(strokeDef.width)) {
+      applyKeyframes(widthProp, strokeDef.width);
+    } else {
+      //@ts-ignore
+      widthProp.setValue(strokeDef.width);
+    }
   }
 
   if (strokeDef.opacity !== undefined) {
-    var opacity = stroke.property("ADBE Vector Stroke Opacity") as Property;
-    //@ts-ignore
-    opacity.setValue(strokeDef.opacity);
+    var opacityProp = stroke.property("ADBE Vector Stroke Opacity") as Property;
+    if (isKeyframeArray(strokeDef.opacity)) {
+      applyKeyframes(opacityProp, strokeDef.opacity);
+    } else {
+      //@ts-ignore
+      opacityProp.setValue(strokeDef.opacity);
+    }
   }
 }
 
@@ -105,20 +219,32 @@ function addStroke(groupContents: PropertyGroup, strokeDef: ShapeStrokeDef): voi
 function addRectangle(groupContents: PropertyGroup, shapeDef: RectangleShapeDef): void {
   var rect = groupContents.addProperty("ADBE Vector Shape - Rect") as PropertyGroup;
 
-  var size = rect.property("ADBE Vector Rect Size") as Property;
-  //@ts-ignore
-  size.setValue(shapeDef.size);
+  var sizeProp = rect.property("ADBE Vector Rect Size") as Property;
+  if (isKeyframeArray(shapeDef.size)) {
+    applyKeyframes(sizeProp, shapeDef.size);
+  } else {
+    //@ts-ignore
+    sizeProp.setValue(shapeDef.size);
+  }
 
   if (shapeDef.position) {
-    var pos = rect.property("ADBE Vector Rect Position") as Property;
-    //@ts-ignore
-    pos.setValue(shapeDef.position);
+    var posProp = rect.property("ADBE Vector Rect Position") as Property;
+    if (isKeyframeArray(shapeDef.position)) {
+      applyKeyframes(posProp, shapeDef.position);
+    } else {
+      //@ts-ignore
+      posProp.setValue(shapeDef.position);
+    }
   }
 
   if (shapeDef.roundness !== undefined) {
-    var roundness = rect.property("ADBE Vector Rect Roundness") as Property;
-    //@ts-ignore
-    roundness.setValue(shapeDef.roundness);
+    var roundnessProp = rect.property("ADBE Vector Rect Roundness") as Property;
+    if (isKeyframeArray(shapeDef.roundness)) {
+      applyKeyframes(roundnessProp, shapeDef.roundness);
+    } else {
+      //@ts-ignore
+      roundnessProp.setValue(shapeDef.roundness);
+    }
   }
 }
 

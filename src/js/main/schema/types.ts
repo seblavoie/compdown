@@ -26,6 +26,12 @@ export const OpacityKeyframeSchema = z.object({
   easing: EasingSchema.optional(),
 });
 
+export const ColorKeyframeSchema = z.object({
+  time: z.number().min(0),
+  value: z.tuple([z.number(), z.number(), z.number()]),  // RGB 0-1 range
+  easing: EasingSchema.optional(),
+});
+
 // --- Transform ---
 
 export const TransformExpressionsSchema = z.object({
@@ -145,60 +151,117 @@ export type LayerStyle = z.infer<typeof LayerStyleSchema>;
 // --- Shape Layer Schemas ---
 
 export const ShapeFillSchema = z.object({
-  color: z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF5500)"),
-  opacity: z.number().min(0).max(100).optional(),
+  color: z.union([
+    z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF5500)"),
+    z.array(ColorKeyframeSchema).min(2),
+  ]),
+  opacity: z.union([
+    z.number().min(0).max(100),
+    z.array(OpacityKeyframeSchema).min(2),
+  ]).optional(),
 });
 
 export type ShapeFill = z.infer<typeof ShapeFillSchema>;
 
 export const ShapeStrokeSchema = z.object({
-  color: z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)"),
-  width: z.number().min(0).optional(),
-  opacity: z.number().min(0).max(100).optional(),
+  color: z.union([
+    z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)"),
+    z.array(ColorKeyframeSchema).min(2),
+  ]),
+  width: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
+  opacity: z.union([
+    z.number().min(0).max(100),
+    z.array(OpacityKeyframeSchema).min(2),
+  ]).optional(),
 });
 
 export type ShapeStroke = z.infer<typeof ShapeStrokeSchema>;
 
 const BaseShapeSchema = z.object({
   name: z.string().optional(),
-  position: z.tuple([z.number(), z.number()]).optional(),
+  position: z.union([
+    z.tuple([z.number(), z.number()]),
+    z.array(TupleKeyframeSchema).min(2),
+  ]).optional(),
   fill: ShapeFillSchema.optional(),
   stroke: ShapeStrokeSchema.optional(),
 });
 
 export const RectangleShapeSchema = BaseShapeSchema.extend({
   type: z.literal("rectangle"),
-  size: z.tuple([z.number(), z.number()]),
-  roundness: z.number().min(0).optional(),
+  size: z.union([
+    z.tuple([z.number(), z.number()]),
+    z.array(TupleKeyframeSchema).min(2),
+  ]),
+  roundness: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
 });
 
 export type RectangleShape = z.infer<typeof RectangleShapeSchema>;
 
 export const EllipseShapeSchema = BaseShapeSchema.extend({
   type: z.literal("ellipse"),
-  size: z.tuple([z.number(), z.number()]),
+  size: z.union([
+    z.tuple([z.number(), z.number()]),
+    z.array(TupleKeyframeSchema).min(2),
+  ]),
 });
 
 export type EllipseShape = z.infer<typeof EllipseShapeSchema>;
 
 export const PolygonShapeSchema = BaseShapeSchema.extend({
   type: z.literal("polygon"),
-  points: z.number().int().min(3),
-  outerRadius: z.number().min(0),
-  outerRoundness: z.number().min(0).optional(),
-  rotation: z.number().optional(),
+  points: z.union([
+    z.number().int().min(3),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]),
+  outerRadius: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]),
+  outerRoundness: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
+  rotation: z.union([
+    z.number(),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
 });
 
 export type PolygonShape = z.infer<typeof PolygonShapeSchema>;
 
 export const StarShapeSchema = BaseShapeSchema.extend({
   type: z.literal("star"),
-  points: z.number().int().min(3),
-  outerRadius: z.number().min(0),
-  innerRadius: z.number().min(0),
-  outerRoundness: z.number().min(0).optional(),
-  innerRoundness: z.number().min(0).optional(),
-  rotation: z.number().optional(),
+  points: z.union([
+    z.number().int().min(3),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]),
+  outerRadius: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]),
+  innerRadius: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]),
+  outerRoundness: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
+  innerRoundness: z.union([
+    z.number().min(0),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
+  rotation: z.union([
+    z.number(),
+    z.array(ScalarKeyframeSchema).min(2),
+  ]).optional(),
 });
 
 export type StarShape = z.infer<typeof StarShapeSchema>;

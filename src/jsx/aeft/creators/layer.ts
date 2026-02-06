@@ -667,7 +667,8 @@ export const createLayers = (
   // Build a name -> layer map for parenting
   var layerNameMap: { [name: string]: Layer } = {};
 
-  for (var i = 0; i < layers.length; i++) {
+  // Create from bottom to top so YAML order maps to layer stack (first is top)
+  for (var i = layers.length - 1; i >= 0; i--) {
     var layerDef = layers[i];
     var newLayer: Layer;
 
