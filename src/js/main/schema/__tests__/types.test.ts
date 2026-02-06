@@ -11,6 +11,8 @@ import {
   ScalarKeyframeSchema,
   OpacityKeyframeSchema,
   EffectSchema,
+  LayerStyleSchema,
+  LayerStyleTypeSchema,
   QualityModeSchema,
   SamplingQualitySchema,
   AutoOrientSchema,
@@ -1453,6 +1455,262 @@ describe("EffectSchema", () => {
         Amount: "time * 10",
         Center: "thisComp.layer(1).transform.position",
       },
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// LayerStyleSchema
+// ---------------------------------------------------------------------------
+
+describe("LayerStyleTypeSchema", () => {
+  it("accepts all valid layer style types", () => {
+    const types = [
+      "dropShadow",
+      "innerShadow",
+      "outerGlow",
+      "innerGlow",
+      "bevelEmboss",
+      "satin",
+      "colorOverlay",
+      "gradientOverlay",
+      "stroke",
+    ];
+    for (const type of types) {
+      expect(LayerStyleTypeSchema.safeParse(type).success).toBe(true);
+    }
+  });
+
+  it("rejects invalid style type", () => {
+    expect(LayerStyleTypeSchema.safeParse("shadow").success).toBe(false);
+  });
+});
+
+describe("LayerStyleSchema", () => {
+  it("accepts a minimal layer style (type only)", () => {
+    const result = LayerStyleSchema.safeParse({ type: "dropShadow" });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a layer style with enabled: false", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "dropShadow",
+      enabled: false,
+    });
+    expect(result.success).toBe(true);
+    expect(result.data!.enabled).toBe(false);
+  });
+
+  it("accepts dropShadow with properties", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "dropShadow",
+      properties: {
+        Opacity: 75,
+        Distance: 5,
+        Size: 10,
+        Angle: 135,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts stroke with color array property", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "stroke",
+      properties: {
+        Color: [1, 0, 0],
+        Size: 2,
+        Opacity: 100,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts colorOverlay with color array", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "colorOverlay",
+      properties: {
+        Color: [0, 0.5, 1],
+        Opacity: 50,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed properties", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "dropShadow",
+      properties: {
+        Opacity: [
+          { time: 0, value: 0 },
+          { time: 2, value: 100 },
+        ],
+        Distance: [
+          { time: 0, value: 0 },
+          { time: 2, value: 50 },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts keyframed properties with easing", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "outerGlow",
+      properties: {
+        Size: [
+          { time: 0, value: 0, easing: "easeOut" },
+          { time: 1, value: 25, easing: "easeIn" },
+        ],
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts expressions", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "dropShadow",
+      properties: {
+        Distance: 10,
+      },
+      expressions: {
+        Distance: "wiggle(1, 5)",
+        Angle: "time * 36",
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts bevelEmboss with properties", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "bevelEmboss",
+      properties: {
+        Depth: 100,
+        Size: 5,
+        Soften: 0,
+        Angle: 120,
+        Altitude: 30,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts gradientOverlay", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "gradientOverlay",
+      properties: {
+        Opacity: 100,
+        Angle: 90,
+        Scale: 100,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts satin style", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "satin",
+      properties: {
+        Opacity: 50,
+        Angle: 19,
+        Distance: 11,
+        Size: 14,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects missing type", () => {
+    const result = LayerStyleSchema.safeParse({
+      properties: { Opacity: 75 },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects invalid type", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "emboss",
+      properties: { Depth: 100 },
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects single keyframe (min 2)", () => {
+    const result = LayerStyleSchema.safeParse({
+      type: "dropShadow",
+      properties: {
+        Opacity: [{ time: 0, value: 50 }],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("LayerSchema with layerStyles", () => {
+  it("accepts a text layer with drop shadow", () => {
+    const result = LayerSchema.safeParse({
+      name: "Title",
+      type: "text",
+      text: "Hello World",
+      layerStyles: [
+        {
+          type: "dropShadow",
+          properties: {
+            Opacity: 75,
+            Distance: 5,
+            Size: 10,
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts a layer with multiple styles", () => {
+    const result = LayerSchema.safeParse({
+      name: "Styled Text",
+      type: "text",
+      text: "Styled",
+      layerStyles: [
+        { type: "dropShadow", properties: { Distance: 5 } },
+        { type: "stroke", properties: { Size: 2, Color: [1, 0, 0] } },
+        { type: "outerGlow", properties: { Size: 20 } },
+      ],
+    });
+    expect(result.success).toBe(true);
+    expect(result.data!.layerStyles).toHaveLength(3);
+  });
+
+  it("accepts a solid with layer styles", () => {
+    const result = LayerSchema.safeParse({
+      name: "BG",
+      type: "solid",
+      color: "FF0000",
+      layerStyles: [
+        { type: "bevelEmboss", properties: { Depth: 100 } },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts layer styles with effects", () => {
+    const result = LayerSchema.safeParse({
+      name: "FX Layer",
+      type: "text",
+      text: "FX",
+      effects: [{ name: "Gaussian Blur", properties: { Blurriness: 5 } }],
+      layerStyles: [{ type: "dropShadow", properties: { Distance: 10 } }],
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts layer with only layerStyles (no effects)", () => {
+    const result = LayerSchema.safeParse({
+      name: "Styled",
+      type: "solid",
+      color: "0000FF",
+      layerStyles: [{ type: "innerGlow" }],
     });
     expect(result.success).toBe(true);
   });

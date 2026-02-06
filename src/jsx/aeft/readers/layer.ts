@@ -88,6 +88,21 @@ function toHex(n: number): string {
 }
 
 /**
+ * Reverse-map layer style matchNames to YAML style type names.
+ */
+var styleTypeNames: { [matchName: string]: string } = {
+  "dropShadow/enabled": "dropShadow",
+  "innerShadow/enabled": "innerShadow",
+  "outerGlow/enabled": "outerGlow",
+  "innerGlow/enabled": "innerGlow",
+  "bevelEmboss/enabled": "bevelEmboss",
+  "chromeFX/enabled": "satin",
+  "solidFill/enabled": "colorOverlay",
+  "gradientFill/enabled": "gradientOverlay",
+  "frameFX/enabled": "stroke",
+};
+
+/**
  * Determine the easing type from a keyframe's interpolation settings.
  * Returns undefined for linear (default), or the easing name.
  */
@@ -273,6 +288,101 @@ function readEffects(layer: Layer): object[] | null {
   }
 
   return effects.length > 0 ? effects : null;
+}
+
+/**
+ * Read layer styles from a layer.
+ */
+function readLayerStyles(layer: Layer): object[] | null {
+  var stylesGroup: PropertyGroup;
+  try {
+    stylesGroup = layer.property("ADBE Layer Styles") as PropertyGroup;
+  } catch (e) {
+    return null;
+  }
+  if (!stylesGroup || stylesGroup.numProperties === 0) return null;
+
+  var styles: object[] = [];
+
+  for (var i = 1; i <= stylesGroup.numProperties; i++) {
+    var styleGroup: PropertyGroup;
+    try {
+      styleGroup = stylesGroup.property(i) as PropertyGroup;
+    } catch (e) {
+      continue;
+    }
+    if (!styleGroup || styleGroup.propertyType !== PropertyType.NAMED_GROUP) continue;
+
+    var matchName = styleGroup.matchName;
+    var styleType = styleTypeNames[matchName];
+    if (!styleType) continue; // Skip unknown styles (e.g., "ADBE Blend Options Group")
+
+    var styleObj: { [key: string]: any } = { type: styleType };
+
+    if (!styleGroup.enabled) {
+      styleObj.enabled = false;
+    }
+
+    // Read properties (same pattern as effects)
+    var properties: { [key: string]: any } = {};
+    var hasProperties = false;
+
+    for (var j = 1; j <= styleGroup.numProperties; j++) {
+      try {
+        var prop = styleGroup.property(j) as Property;
+        if (prop.propertyType !== PropertyType.PROPERTY) continue;
+
+        var propName = prop.name;
+        if (prop.numKeys > 0) {
+          properties[propName] = readEffectKeyframes(prop);
+          hasProperties = true;
+        } else {
+          var val = prop.value;
+          if (val !== undefined && val !== null) {
+            if (val instanceof Array) {
+              var arr: number[] = [];
+              for (var k = 0; k < val.length; k++) {
+                arr.push(Math.round(val[k] * 1000) / 1000);
+              }
+              properties[propName] = arr;
+            } else {
+              properties[propName] = Math.round((val as number) * 1000) / 1000;
+            }
+            hasProperties = true;
+          }
+        }
+      } catch (e) {
+        // Some properties may not be readable; skip
+      }
+    }
+
+    if (hasProperties) {
+      styleObj.properties = properties;
+    }
+
+    // Read expressions from style properties
+    var exprObj: { [key: string]: string } = {};
+    var hasExpr = false;
+    for (var je = 1; je <= styleGroup.numProperties; je++) {
+      try {
+        var exprProp = styleGroup.property(je) as Property;
+        if (exprProp.propertyType !== PropertyType.PROPERTY) continue;
+        if (exprProp.expression && exprProp.expression.length > 0) {
+          exprObj[exprProp.name] = exprProp.expression;
+          hasExpr = true;
+        }
+      } catch (e) {
+        // Skip unreadable properties
+      }
+    }
+    if (hasExpr) {
+      styleObj.expressions = exprObj;
+    }
+
+    styles.push(styleObj);
+  }
+
+  return styles.length > 0 ? styles : null;
 }
 
 function readTransform(layer: Layer): object | null {
@@ -650,6 +760,12 @@ export function readLayer(layer: Layer): object {
   var effects = readEffects(layer);
   if (effects) {
     result.effects = effects;
+  }
+
+  // Layer styles
+  var layerStyles = readLayerStyles(layer);
+  if (layerStyles) {
+    result.layerStyles = layerStyles;
   }
 
   return result;

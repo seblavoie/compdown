@@ -127,6 +127,13 @@ interface EffectDef {
   expressions?: { [key: string]: string };
 }
 
+interface LayerStyleDef {
+  type: string;
+  enabled?: boolean;
+  properties?: { [key: string]: number | boolean | number[] | EffectKeyframeDef[] };
+  expressions?: { [key: string]: string };
+}
+
 interface LayerDef {
   name: string;
   type?: string;
@@ -187,6 +194,8 @@ interface LayerDef {
   label?: number;
   transform?: TransformDef;
   effects?: EffectDef[];
+  // Layer styles
+  layerStyles?: LayerStyleDef[];
   // Shape-specific
   shapes?: any[];
 }
@@ -379,6 +388,134 @@ function applyEffects(layer: Layer, effects: EffectDef[]): void {
         }
       }
     }
+  }
+}
+
+/**
+ * Command IDs for adding layer styles via app.executeCommand.
+ * Layer styles cannot be added via addProperty() - must use executeCommand.
+ */
+var styleCommandIds: { [key: string]: number } = {
+  dropShadow: 9000,
+  innerShadow: 9001,
+  outerGlow: 9002,
+  innerGlow: 9003,
+  bevelEmboss: 9004,
+  satin: 9005,
+  colorOverlay: 9006,
+  gradientOverlay: 9007,
+  stroke: 9008,
+};
+
+/**
+ * Match names for accessing layer style property groups after they are added.
+ */
+var styleMatchNames: { [key: string]: string } = {
+  dropShadow: "dropShadow/enabled",
+  innerShadow: "innerShadow/enabled",
+  outerGlow: "outerGlow/enabled",
+  innerGlow: "innerGlow/enabled",
+  bevelEmboss: "bevelEmboss/enabled",
+  satin: "chromeFX/enabled",
+  colorOverlay: "solidFill/enabled",
+  gradientOverlay: "gradientFill/enabled",
+  stroke: "frameFX/enabled",
+};
+
+/**
+ * Apply layer styles to a layer.
+ * Uses app.executeCommand because layer styles cannot be added via addProperty.
+ */
+function applyLayerStyles(layer: Layer, styles: LayerStyleDef[], comp: CompItem): void {
+  // Save current selection (executeCommand operates on selected layer)
+  var savedSelection: Layer[] = [];
+  for (var i = 1; i <= comp.numLayers; i++) {
+    if (comp.layer(i).selected) savedSelection.push(comp.layer(i));
+    comp.layer(i).selected = false;
+  }
+  layer.selected = true;
+
+  for (var s = 0; s < styles.length; s++) {
+    var styleDef = styles[s];
+    var commandId = styleCommandIds[styleDef.type];
+    if (!commandId) continue;
+
+    // Add style via executeCommand
+    app.executeCommand(commandId);
+
+    // Access the style property group
+    var stylesGroup: PropertyGroup;
+    try {
+      stylesGroup = layer.property("ADBE Layer Styles") as PropertyGroup;
+    } catch (e) {
+      continue;
+    }
+    if (!stylesGroup) continue;
+
+    var matchName = styleMatchNames[styleDef.type];
+    var styleGroup: PropertyGroup;
+    try {
+      styleGroup = stylesGroup.property(matchName) as PropertyGroup;
+    } catch (e) {
+      continue;
+    }
+    if (!styleGroup) continue;
+
+    // Set enabled state
+    if (styleDef.enabled === false) {
+      styleGroup.enabled = false;
+    }
+
+    // Apply properties (same pattern as effects)
+    if (styleDef.properties) {
+      for (var propName in styleDef.properties) {
+        if (!styleDef.properties.hasOwnProperty(propName)) continue;
+        var propVal = styleDef.properties[propName];
+        try {
+          var prop = styleGroup.property(propName) as Property;
+          if (!prop) continue;
+
+          if (isEffectKeyframeArray(propVal)) {
+            // First pass: set values
+            for (var k = 0; k < propVal.length; k++) {
+              prop.setValueAtTime(propVal[k].time, boolToNum(propVal[k].value));
+            }
+            // Second pass: apply easing
+            for (var k = 0; k < propVal.length; k++) {
+              if (propVal[k].easing) {
+                applyEasing(prop, k + 1, propVal[k].easing);
+              }
+            }
+          } else {
+            //@ts-ignore
+            prop.setValue(boolToNum(propVal));
+          }
+        } catch (e) {
+          // Some properties may not be settable; skip silently
+        }
+      }
+    }
+
+    // Apply expressions
+    if (styleDef.expressions) {
+      for (var exprPropName in styleDef.expressions) {
+        if (!styleDef.expressions.hasOwnProperty(exprPropName)) continue;
+        try {
+          var exprProp = styleGroup.property(exprPropName) as Property;
+          if (exprProp && exprProp.canSetExpression) {
+            exprProp.expression = styleDef.expressions[exprPropName];
+          }
+        } catch (e) {
+          // Some properties may not support expressions; skip silently
+        }
+      }
+    }
+  }
+
+  // Restore selection
+  layer.selected = false;
+  for (var j = 0; j < savedSelection.length; j++) {
+    savedSelection[j].selected = true;
   }
 }
 
@@ -789,6 +926,11 @@ export const createLayers = (
     // Effects
     if (layerDef.effects && layerDef.effects.length > 0) {
       applyEffects(newLayer, layerDef.effects);
+    }
+
+    // Layer styles
+    if (layerDef.layerStyles && layerDef.layerStyles.length > 0) {
+      applyLayerStyles(newLayer, layerDef.layerStyles, comp);
     }
 
     layerNameMap[layerDef.name] = newLayer;

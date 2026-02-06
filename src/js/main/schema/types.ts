@@ -117,6 +117,31 @@ export const EffectSchema = z.object({
 
 export type Effect = z.infer<typeof EffectSchema>;
 
+// --- Layer Styles ---
+
+export const LayerStyleTypeSchema = z.enum([
+  "dropShadow",
+  "innerShadow",
+  "outerGlow",
+  "innerGlow",
+  "bevelEmboss",
+  "satin",
+  "colorOverlay",
+  "gradientOverlay",
+  "stroke",
+]);
+
+export type LayerStyleType = z.infer<typeof LayerStyleTypeSchema>;
+
+export const LayerStyleSchema = z.object({
+  type: LayerStyleTypeSchema,
+  enabled: z.boolean().optional(),
+  properties: z.record(z.string(), EffectPropertyValueSchema).optional(),
+  expressions: z.record(z.string(), z.string()).optional(),
+});
+
+export type LayerStyle = z.infer<typeof LayerStyleSchema>;
+
 // --- Shape Layer Schemas ---
 
 export const ShapeFillSchema = z.object({
@@ -334,6 +359,9 @@ export const LayerSchema = z
 
     // Effects
     effects: z.array(EffectSchema).optional(),
+
+    // Layer Styles
+    layerStyles: z.array(LayerStyleSchema).optional(),
   })
   .refine(
     (layer) => {
