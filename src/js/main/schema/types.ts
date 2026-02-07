@@ -266,30 +266,51 @@ export const StarShapeSchema = BaseShapeSchema.extend({
 
 export type StarShape = z.infer<typeof StarShapeSchema>;
 
-export const PathShapeSchema = BaseShapeSchema.extend({
+const PathShapeBaseSchema = BaseShapeSchema.extend({
   type: z.literal("path"),
   vertices: z.array(z.tuple([z.number(), z.number()])).min(2),
   inTangents: z.array(z.tuple([z.number(), z.number()])).optional(),
   outTangents: z.array(z.tuple([z.number(), z.number()])).optional(),
   closed: z.boolean().optional(),
-}).refine(
-  (shape) => {
-    if (shape.inTangents && shape.inTangents.length !== shape.vertices.length) return false;
-    if (shape.outTangents && shape.outTangents.length !== shape.vertices.length) return false;
-    return true;
-  },
-  { message: "inTangents/outTangents must match vertices length" }
-);
+});
+
+function validatePathTangents(shape: {
+  vertices: [number, number][];
+  inTangents?: [number, number][];
+  outTangents?: [number, number][];
+}): boolean {
+  if (shape.inTangents && shape.inTangents.length !== shape.vertices.length) return false;
+  if (shape.outTangents && shape.outTangents.length !== shape.vertices.length) return false;
+  return true;
+}
+
+export const PathShapeSchema = PathShapeBaseSchema.superRefine((shape, ctx) => {
+  if (!validatePathTangents(shape)) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: "inTangents/outTangents must match vertices length",
+    });
+  }
+});
 
 export type PathShape = z.infer<typeof PathShapeSchema>;
 
-export const ShapeSchema = z.discriminatedUnion("type", [
+export const ShapeSchema = z
+  .discriminatedUnion("type", [
   RectangleShapeSchema,
   EllipseShapeSchema,
   PolygonShapeSchema,
   StarShapeSchema,
-  PathShapeSchema,
-]);
+  PathShapeBaseSchema,
+  ])
+  .superRefine((shape, ctx) => {
+    if (shape.type === "path" && !validatePathTangents(shape)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "inTangents/outTangents must match vertices length",
+      });
+    }
+  });
 
 export type Shape = z.infer<typeof ShapeSchema>;
 

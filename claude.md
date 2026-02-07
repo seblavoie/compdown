@@ -96,6 +96,7 @@ Convention: always write tests for new panel-side logic. ExtendScript code can't
 1. Enable PlayerDebugMode (aescripts ZXP Installer > Settings > Debug > Enable Debugging)
 2. `npm run build` then restart AE, or `npm run dev` for HMR
 3. Panel appears under Window > Extensions > Compdown
+4. If the panel is black, open the panel DevTools and validate in the browser console before debugging schema/runtime.
 
 ## Releases
 
