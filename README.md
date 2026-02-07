@@ -20,6 +20,7 @@ It also allows you to export existing comps back into YAML.
 - **Project structure**: Define **folders**, **files**, and **compositions** in YAML; creation order is folders → files → compositions → layers
 - **Layer types**: Solids, nulls, adjustment layers, text layers, shape layers, camera layers, light layers, file-based layers (footage, images), and comp-in-comp nesting via the `comp` key
 - **Shape layers**: Parametric shapes (rectangle, ellipse, polygon, star) and custom paths with fill and stroke properties
+- **Masks**: Per-layer masks with modes, opacity, feather, expansion, and optional animated paths
 - **Keyframe animation**: Transform properties (position, scale, rotation, opacity, anchor point) with static values or arrays of keyframes
 - **Layer effects**: Native effects on layers, with properties supporting static or animated values, by display name or `matchName`
 
@@ -376,6 +377,61 @@ layers:
 
 > [!NOTE]
 > For `path` shapes, `inTangents` and `outTangents` are optional. If omitted, tangents default to `[0, 0]`.
+
+#### `masks`
+
+Masks can be added to any layer type.
+
+| Property | Type | Required | Description |
+|----------|------|----------|-------------|
+| `name` | string | no | Mask name |
+| `path` | object or array | yes | Mask path (see below) |
+| `mode` | string | no | `add`, `subtract`, `intersect`, `lighten`, `darken`, `difference`, `none` |
+| `opacity` | number | no | Opacity 0-100 |
+| `feather` | [number, number] | no | Feather [x, y] |
+| `expansion` | number | no | Expansion in pixels |
+| `inverted` | boolean | no | Invert mask |
+
+**Mask path:**
+
+```yaml
+path:
+  vertices:
+    - [0, 0]
+    - [100, 0]
+    - [100, 100]
+    - [0, 100]
+  inTangents:  # optional
+    - [0, 0]
+    - [0, 0]
+    - [0, 0]
+    - [0, 0]
+  outTangents: # optional
+    - [0, 0]
+    - [0, 0]
+    - [0, 0]
+    - [0, 0]
+  closed: true
+```
+
+**Example:**
+
+```yaml
+layers:
+  - name: Masked Solid
+    type: solid
+    color: FF0000
+    masks:
+      - name: Hole
+        mode: subtract
+        feather: [8, 8]
+        path:
+          vertices:
+            - [200, 200]
+            - [400, 200]
+            - [400, 400]
+            - [200, 400]
+```
 
 #### `effects`
 

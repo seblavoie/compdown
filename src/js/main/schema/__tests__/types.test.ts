@@ -1235,6 +1235,65 @@ describe("LayerSchema (shape layers)", () => {
   });
 });
 
+describe("MaskSchema", () => {
+  it("accepts a simple mask", () => {
+    const result = MaskSchema.safeParse({
+      name: "Mask 1",
+      path: {
+        vertices: [
+          [0, 0],
+          [100, 0],
+          [100, 100],
+          [0, 100],
+        ],
+        closed: true,
+      },
+      mode: "add",
+      feather: [0, 0],
+      opacity: 100,
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects mask with mismatched tangents", () => {
+    const result = MaskSchema.safeParse({
+      path: {
+        vertices: [
+          [0, 0],
+          [100, 0],
+        ],
+        inTangents: [[0, 0]],
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+});
+
+describe("LayerSchema (masks)", () => {
+  it("accepts a layer with masks", () => {
+    const result = LayerSchema.safeParse({
+      name: "Masked Layer",
+      type: "solid",
+      color: "FF0000",
+      masks: [
+        {
+          name: "Mask 1",
+          mode: "subtract",
+          path: {
+            vertices: [
+              [0, 0],
+              [100, 0],
+              [100, 100],
+              [0, 100],
+            ],
+          },
+        },
+      ],
+    });
+    expect(result.success).toBe(true);
+  });
+});
+
 // ---------------------------------------------------------------------------
 // QualityModeSchema
 // ---------------------------------------------------------------------------

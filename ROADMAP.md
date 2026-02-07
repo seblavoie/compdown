@@ -79,7 +79,8 @@ Link properties with AE expressions via `expressions` object on transform and ef
 **Status:** Done
 Create camera and light layers with full property support.
 
-### Masks/paths
+### ~~Masks/paths~~
+**Status:** Done
 Add masks to layers with animatable paths.
 
 ### Audio layers

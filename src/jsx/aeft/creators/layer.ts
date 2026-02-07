@@ -1,4 +1,5 @@
 import { applyShapes } from "./shapes";
+import { applyMasks } from "./masks";
 
 /**
  * Mapping of YAML blending mode names to AE BlendingMode enum values.
@@ -198,6 +199,8 @@ interface LayerDef {
   layerStyles?: LayerStyleDef[];
   // Shape-specific
   shapes?: any[];
+  // Masks
+  masks?: any[];
 }
 
 /**
@@ -932,6 +935,11 @@ export const createLayers = (
     // Layer styles
     if (layerDef.layerStyles && layerDef.layerStyles.length > 0) {
       applyLayerStyles(newLayer, layerDef.layerStyles, comp);
+    }
+
+    // Masks
+    if (layerDef.masks && layerDef.masks.length > 0) {
+      applyMasks(newLayer as AVLayer, layerDef.masks);
     }
 
     layerNameMap[layerDef.name] = newLayer;

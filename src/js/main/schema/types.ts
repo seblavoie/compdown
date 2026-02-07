@@ -293,6 +293,48 @@ export const ShapeSchema = z.discriminatedUnion("type", [
 
 export type Shape = z.infer<typeof ShapeSchema>;
 
+// --- Mask Schemas ---
+
+const MaskPathSchema = z
+  .object({
+    vertices: z.array(z.tuple([z.number(), z.number()])).min(2),
+    inTangents: z.array(z.tuple([z.number(), z.number()])).optional(),
+    outTangents: z.array(z.tuple([z.number(), z.number()])).optional(),
+    closed: z.boolean().optional(),
+  })
+  .refine(
+    (shape) => {
+      if (shape.inTangents && shape.inTangents.length !== shape.vertices.length) return false;
+      if (shape.outTangents && shape.outTangents.length !== shape.vertices.length) return false;
+      return true;
+    },
+    { message: "inTangents/outTangents must match vertices length" }
+  );
+
+const MaskPathKeyframeSchema = z.object({
+  time: z.number(),
+  value: MaskPathSchema,
+  easing: z.enum(["linear", "easeIn", "easeOut", "easeInOut", "hold"]).optional(),
+});
+
+export const MaskSchema = z.object({
+  name: z.string().optional(),
+  path: z.union([MaskPathSchema, z.array(MaskPathKeyframeSchema).min(2)]),
+  mode: z.enum(["add", "subtract", "intersect", "lighten", "darken", "difference", "none"]).optional(),
+  opacity: z
+    .union([z.number().min(0).max(100), z.array(OpacityKeyframeSchema).min(2)])
+    .optional(),
+  feather: z
+    .union([z.tuple([z.number(), z.number()]), z.array(TupleKeyframeSchema).min(2)])
+    .optional(),
+  expansion: z
+    .union([z.number(), z.array(ScalarKeyframeSchema).min(2)])
+    .optional(),
+  inverted: z.boolean().optional(),
+});
+
+export type Mask = z.infer<typeof MaskSchema>;
+
 // --- Layer quality modes ---
 
 export const QualityModeSchema = z.enum(["best", "draft", "wireframe"]).optional();
@@ -407,6 +449,8 @@ export const LayerSchema = z
 
     // Shape-specific
     shapes: z.array(ShapeSchema).optional(),
+    // Masks
+    masks: z.array(MaskSchema).optional(),
 
     // Layer properties
     enabled: z.boolean().optional(),
