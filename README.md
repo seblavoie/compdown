@@ -18,7 +18,7 @@ It also allows you to export existing comps back into YAML.
 ### After Effects
 
 - **Project structure**: Define **folders**, **files**, and **compositions** in YAML; creation order is folders → files → compositions → layers
-- **Layer types**: Solids, nulls, adjustment layers, text layers, shape layers, camera layers, light layers, audio layers, file-based layers (footage, images), and comp-in-comp nesting via the `comp` key
+- **Layer types**: Solids, nulls, adjustment layers, text layers, shape layers, camera layers, light layers, audio layers, file-based layers (footage, images), and composition-in-composition nesting via the `composition` key
 - **Shape layers**: Parametric shapes (rectangle, ellipse, polygon, star) and custom paths with fill and stroke properties
 - **Masks**: Per-layer masks with modes, opacity, feather, expansion, and optional animated paths
 - **Text animators**: Per-character animation via text animators (opacity/position/scale/rotation/etc.)
@@ -141,7 +141,7 @@ compositions:
           scale: [100, 100]
           opacity: 80
       - name: lower third
-        comp: Lower Third
+        composition: Lower Third
         transform:
           position:
             - time: 2
@@ -202,16 +202,16 @@ compositions:
 
 #### `layers`
 
-Each layer must have exactly one of `type`, `file`, or `comp`.
+Each layer must have exactly one of `type`, `file`, or `composition`.
 
 ##### Core identity and source
 
 | Property  | Type             | Required            | Description                              |
 | --------- | ---------------- | ------------------- | ---------------------------------------- |
 | name      | string           | yes                 | Layer name                               |
-| type      | string           | if no `file`/`comp` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape`, `audio` |
-| file      | string \| number | if no `type`/`comp` | References a file `id`                   |
-| comp      | string           | if no `type`/`file` | References another comp by name          |
+| type      | string           | if no `file`/`composition` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape`, `audio` |
+| file      | string \| number | if no `type`/`composition` | References a file `id`                   |
+| composition | string         | if no `type`/`file` | References another composition by name   |
 | transform | object           | no                  | Transform properties (see below)         |
 
 ##### Timing and placement
@@ -707,7 +707,7 @@ The extension runs two separate runtimes connected by [Bolt CEP](https://github.
 - **Panel** (React + TypeScript): UI, YAML editing, schema validation. All parsing and validation happen here before anything is sent to AE.
 - **ExtendScript** (ES3, runs inside AE): Receives validated JSON and executes After Effects API calls. Handles creation of project items and reading of compositions.
 
-Creation order when building from YAML: folders -> files -> compositions -> layers. Each step's output feeds into the next (layers need comp references, file-based layers need footage references).
+Creation order when building from YAML: folders -> files -> compositions -> layers. Each step's output feeds into the next (layers need composition references, file-based layers need footage references).
 
 ## Tech stack
 

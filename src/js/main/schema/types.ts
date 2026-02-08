@@ -449,7 +449,7 @@ export const LayerSchema = z
       .enum(["solid", "null", "adjustment", "text", "camera", "light", "shape", "audio"])
       .optional(),
     file: z.union([z.string(), z.number()]).optional(),
-    comp: z.string().optional(),
+    composition: z.string().optional(),
 
     // Timing
     inPoint: z.number().min(0).optional(),
@@ -547,18 +547,18 @@ export const LayerSchema = z
   })
   .refine(
     (layer) => {
-      // A layer must have exactly one of type, file, or comp
-      const has = [layer.type, layer.file, layer.comp].filter(
+      // A layer must have exactly one of type, file, or composition
+      const has = [layer.type, layer.file, layer.composition].filter(
         (v) => v !== undefined
       ).length;
       if (layer.type === "audio") {
-        return layer.file !== undefined && layer.comp === undefined;
+        return layer.file !== undefined && layer.composition === undefined;
       }
       return has === 1;
     },
     {
       message:
-        "Layer must have exactly one of 'type', 'file', or 'comp' specified (audio requires 'file')",
+        "Layer must have exactly one of 'type', 'file', or 'composition' specified (audio requires 'file')",
     }
   )
   .refine(

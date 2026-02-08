@@ -671,7 +671,7 @@ export function readLayer(layer: Layer): object {
     }
   } else if (layer.source && layer.source instanceof CompItem) {
     // Layer referencing a comp
-    result.comp = layer.source.name;
+    result.composition = layer.source.name;
   } else if (layer.source && layer.source instanceof FootageItem) {
     var source = layer.source as FootageItem;
     if (source.file) {

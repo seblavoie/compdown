@@ -541,7 +541,7 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a layer with neither type, file, nor comp", () => {
+  it("rejects a layer with neither type, file, nor composition", () => {
     const result = LayerSchema.safeParse({ name: "Orphan" });
     expect(result.success).toBe(false);
     expect(
@@ -549,18 +549,26 @@ describe("LayerSchema", () => {
     ).toBe(true);
   });
 
-  it("accepts a comp-in-comp layer", () => {
+  it("accepts a composition-in-composition layer", () => {
     const result = LayerSchema.safeParse({
       name: "Nested",
-      comp: "Other Comp",
+      composition: "Other Comp",
     });
     expect(result.success).toBe(true);
   });
 
-  it("rejects a layer with both comp and file", () => {
+  it("rejects legacy comp alias", () => {
+    const result = LayerSchema.safeParse({
+      name: "Nested",
+      comp: "Other Comp",
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects a layer with both composition and file", () => {
     const result = LayerSchema.safeParse({
       name: "Bad",
-      comp: "Other",
+      composition: "Other",
       file: "clip1",
     });
     expect(result.success).toBe(false);
@@ -569,10 +577,10 @@ describe("LayerSchema", () => {
     ).toBe(true);
   });
 
-  it("rejects a layer with both comp and type", () => {
+  it("rejects a layer with both composition and type", () => {
     const result = LayerSchema.safeParse({
       name: "Bad",
-      comp: "Other",
+      composition: "Other",
       type: "null",
     });
     expect(result.success).toBe(false);

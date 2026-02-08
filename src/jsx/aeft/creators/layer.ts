@@ -145,7 +145,7 @@ interface LayerDef {
   name: string;
   type?: string;
   file?: string | number;
-  comp?: string;
+  composition?: string;
   inPoint?: number;
   outPoint?: number;
   startTime?: number;
@@ -773,11 +773,11 @@ export const createLayers = (
     var layerDef = layers[i];
     var newLayer: Layer;
 
-    if (layerDef.comp !== undefined) {
+    if (layerDef.composition !== undefined) {
       // Comp-in-comp layer
-      var refComp = compMap[layerDef.comp];
+      var refComp = compMap[layerDef.composition];
       if (!refComp) {
-        throw new Error("Comp with name '" + layerDef.comp + "' not found");
+        throw new Error("Comp with name '" + layerDef.composition + "' not found");
       }
       newLayer = comp.layers.add(refComp);
     } else if (layerDef.file !== undefined) {

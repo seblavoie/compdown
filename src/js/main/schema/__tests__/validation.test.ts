@@ -354,10 +354,32 @@ compositions:
   });
 
   // ---------------------------------------------------------------------------
-  // Comp-in-comp
+  // Composition-in-composition
   // ---------------------------------------------------------------------------
 
-  it("validates a document with comp-in-comp layer", () => {
+  it("validates a document with composition-in-composition layer", () => {
+    const yaml = `
+compositions:
+  - name: Inner Comp
+    layers:
+      - name: BG
+        type: solid
+        color: "000000"
+  - name: Outer Comp
+    layers:
+      - name: Nested
+        composition: Inner Comp
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions).toHaveLength(2);
+    const outerLayers = result.data!.compositions![1].layers!;
+    expect(outerLayers[0].composition).toBe("Inner Comp");
+    expect(outerLayers[0].file).toBeUndefined();
+    expect(outerLayers[0].type).toBeUndefined();
+  });
+
+  it("rejects legacy comp key in YAML", () => {
     const yaml = `
 compositions:
   - name: Inner Comp
@@ -371,21 +393,19 @@ compositions:
         comp: Inner Comp
 `;
     const result = validateYaml(yaml);
-    expect(result.success).toBe(true);
-    expect(result.data!.compositions).toHaveLength(2);
-    const outerLayers = result.data!.compositions![1].layers!;
-    expect(outerLayers[0].comp).toBe("Inner Comp");
-    expect(outerLayers[0].file).toBeUndefined();
-    expect(outerLayers[0].type).toBeUndefined();
+    expect(result.success).toBe(false);
+    expect(
+      result.errors.some((e) => e.message.includes("exactly one"))
+    ).toBe(true);
   });
 
-  it("rejects a layer with both comp and file in YAML", () => {
+  it("rejects a layer with both composition and file in YAML", () => {
     const yaml = `
 compositions:
   - name: Bad Comp
     layers:
       - name: Conflict
-        comp: Other
+        composition: Other
         file: clip1
 `;
     const result = validateYaml(yaml);
