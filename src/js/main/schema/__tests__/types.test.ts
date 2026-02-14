@@ -2366,7 +2366,7 @@ describe("CompdownDocumentSchema", () => {
     expect(result.success).toBe(false);
     expect(
       result.error!.issues.some((i) =>
-        i.message.includes("Top-level 'layers' require 'destination: _timeline'")
+        i.message.includes("Top-level 'layers' require '_timeline.layers'")
       )
     ).toBe(true);
   });

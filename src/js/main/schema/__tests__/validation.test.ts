@@ -70,6 +70,20 @@ layers:
     expect(result.data!.layers).toHaveLength(1);
   });
 
+  it("accepts _timeline block syntax and normalizes to destination/layers", () => {
+    const yaml = `
+_timeline:
+  layers:
+    - name: Title
+      type: text
+      text: Hello
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.destination).toBe("_timeline");
+    expect(result.data!.layers).toHaveLength(1);
+  });
+
   // ---------------------------------------------------------------------------
   // validateYaml – YAML syntax errors
   // ---------------------------------------------------------------------------
@@ -215,7 +229,7 @@ layers:
     expect(result.success).toBe(false);
     expect(
       result.errors.some((e) =>
-        e.message.includes("Top-level 'layers' require 'destination: _timeline'")
+        e.message.includes("Top-level 'layers' require '_timeline.layers'")
       )
     ).toBe(true);
   });

@@ -167,6 +167,20 @@ function preprocessParsedYaml(data: unknown): unknown {
 
   const obj = data as Record<string, unknown>;
 
+  // Alias syntax:
+  // _timeline:
+  //   layers: [...]
+  // Normalize to destination/layers for downstream schema/runtime.
+  if (obj._timeline && typeof obj._timeline === "object") {
+    const timelineObj = obj._timeline as Record<string, unknown>;
+    if (obj.destination === undefined) {
+      obj.destination = "_timeline";
+    }
+    if (obj.layers === undefined && Array.isArray(timelineObj.layers)) {
+      obj.layers = timelineObj.layers;
+    }
+  }
+
   // Recurse into compositions and layers
   if (Array.isArray(obj.compositions)) {
     for (const comp of obj.compositions) {

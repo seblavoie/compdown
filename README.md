@@ -66,15 +66,28 @@ npx tsc -p tsconfig-build.json --noEmit
 
 ## YAML Schema
 
-A Compdown document has optional top-level keys: `destination`, `layers`, `folders`, `files`, and `compositions`. At least one content section must be present (`layers`, `folders`, `files`, or `compositions`).
+A Compdown document has optional top-level keys: `_timeline`, `destination`, `layers`, `folders`, `files`, and `compositions`. At least one content section must be present (`layers`, `folders`, `files`, or `compositions`).
 
-When using top-level `layers`, you must set:
+Preferred top-level layers syntax:
 
 ```yaml
-destination: _timeline
+_timeline:
+  layers:
+    - name: My Layer
+      type: text
+      text: Hello
 ```
 
 This adds the layers into the currently active composition timeline.
+Legacy syntax is still supported:
+
+```yaml
+destination: _timeline
+layers:
+  - name: My Layer
+    type: text
+    text: Hello
+```
 
 > [!NOTE]
 > Compdown automatically handles some YAML parsing quirks so you don't need extra quotes:
@@ -84,16 +97,16 @@ This adds the layers into the currently active composition timeline.
 ### Minimal example
 
 ```yaml
-destination: _timeline
-layers:
-  - name: background
-    type: solid
-    color: 1a1a2e
-  - name: title
-    type: text
-    text: Hello World
-    transform:
-      position: [960, 540]
+_timeline:
+  layers:
+    - name: background
+      type: solid
+      color: 1a1a2e
+    - name: title
+      type: text
+      text: Hello World
+      transform:
+        position: [960, 540]
 ```
 
 ### Full example
@@ -176,17 +189,18 @@ compositions:
 
 ### Reference
 
-#### `destination`
+#### `_timeline`
 
-Controls where top-level `layers` are created.
+Preferred target block for top-level `layers`.
 
 | Value       | Description |
 | ----------- | ----------- |
-| `_timeline` | Create top-level `layers` in the currently active composition timeline |
+| `_timeline` | Create `layers` in the currently active composition timeline |
 
 Notes:
-- Required when using top-level `layers`.
+- Use `_timeline.layers` for top-level layer authoring.
 - If no composition timeline is active in After Effects, creation fails with an explicit error.
+- Legacy `destination: _timeline` + top-level `layers` is still supported for backward compatibility.
 
 #### `folders`
 
@@ -225,7 +239,8 @@ Each layer must have exactly one of `type`, `file`, or `composition`.
 
 `layers` can be used in two places:
 - Nested under a composition in `compositions[].layers`
-- At the top level as `layers` (requires `destination: _timeline`)
+- Inside `_timeline.layers` at the top level (preferred)
+- As legacy top-level `layers` (requires `destination: _timeline`)
 
 ##### Core identity and source
 

@@ -806,7 +806,7 @@ export const CompdownDocumentSchema = z
       return true;
     },
     {
-      message: "Top-level 'layers' require 'destination: _timeline'",
+      message: "Top-level 'layers' require '_timeline.layers' (or legacy 'destination: _timeline')",
       path: ["destination"],
     }
   );

@@ -14,16 +14,16 @@ import { EditorView, keymap, lineNumbers } from "@codemirror/view";
 import { useEffect, useRef } from "react";
 import type { ValidationError } from "../schema/validation";
 
-const SAMPLE_YAML = `destination: _timeline
-layers:
-  - name: background
-    type: solid
-    color: 1a1a2e
-  - name: title
-    type: text
-    text: Hello World
-    transform:
-      position: [960, 540]
+const SAMPLE_YAML = `_timeline:
+  layers:
+    - name: background
+      type: solid
+      color: 1a1a2e
+    - name: title
+      type: text
+      text: Hello World
+      transform:
+        position: [960, 540]
 `;
 
 interface YamlEditorProps {
