@@ -66,7 +66,7 @@ npx tsc -p tsconfig-build.json --noEmit
 
 ## YAML Schema
 
-A Compdown document has optional top-level keys: `_timeline`, `folders`, `files`, and `compositions`. At least one content section must be present (`_timeline`, `folders`, `files`, or `compositions`).
+A Compdown document has optional top-level keys: `_timeline`, `_selected`, `folders`, `files`, and `compositions`. At least one content section must be present (`_timeline`, `_selected`, `folders`, `files`, or `compositions`).
 
 Preferred top-level layers syntax:
 
@@ -92,6 +92,16 @@ _timeline:
   remove:
     layers:
       - name: Temp Layer
+```
+
+To operate on currently selected layers, use `_selected`:
+
+```yaml
+_selected:
+  set:
+    transform:
+      opacity: 50
+  remove: true
 ```
 
 > [!NOTE]
@@ -208,6 +218,20 @@ Notes:
 - `_timeline.remove.layers` deletes exactly one existing layer per entry (match by exact `name`).
 - If no composition timeline is active in After Effects, creation fails with an explicit error.
 - `set/remove` fail if no layer matches or if multiple layers have the same name.
+
+#### `_selected`
+
+Target block for currently selected layers in the active composition timeline.
+
+| Value       | Description |
+| ----------- | ----------- |
+| `_selected` | Run actions on currently selected layers in the active composition timeline |
+
+Notes:
+- `_selected.set` applies one patch to every selected layer.
+- `_selected.remove: true` deletes all selected layers.
+- `_selected.set` does not support `parent`.
+- `_selected` fails if no layers are selected.
 
 #### `folders`
 

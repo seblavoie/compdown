@@ -45,8 +45,14 @@ export interface CompdownTimelineDocumentItem {
   };
 }
 
+export interface CompdownSelectedDocumentItem {
+  set?: any;
+  remove?: boolean;
+}
+
 export interface CompdownCreateDocument {
   _timeline?: CompdownTimelineDocumentItem;
+  _selected?: CompdownSelectedDocumentItem;
   folders?: CompdownFolderDocumentItem[];
   files?: CompdownFileDocumentItem[];
   compositions?: CompdownCompositionDocumentItem[];

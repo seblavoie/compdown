@@ -2380,6 +2380,45 @@ describe("CompdownDocumentSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts _selected.set patch", () => {
+    const result = CompdownDocumentSchema.safeParse({
+      _selected: {
+        set: {
+          transform: { opacity: 50 },
+        },
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts _selected.remove: true", () => {
+    const result = CompdownDocumentSchema.safeParse({
+      _selected: {
+        remove: true,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects _selected with no actions", () => {
+    const result = CompdownDocumentSchema.safeParse({
+      _selected: {},
+    });
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects _selected.set with name field", () => {
+    const result = CompdownDocumentSchema.safeParse({
+      _selected: {
+        set: {
+          name: "Title",
+          transform: { opacity: 50 },
+        },
+      },
+    });
+    expect(result.success).toBe(false);
+  });
+
   it("rejects _timeline with no actions", () => {
     const result = CompdownDocumentSchema.safeParse({
       _timeline: {},

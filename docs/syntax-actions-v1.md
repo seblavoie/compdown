@@ -1,4 +1,4 @@
-# Syntax Actions v1 (Draft)
+# Syntax Actions v1
 
 This document defines the v1 action model for timeline context.
 
@@ -22,6 +22,10 @@ _timeline:
     layers: [...]          # explicit update existing
   remove:
     layers: [...]          # explicit delete existing
+
+_selected:
+  set: {...}               # patch all selected layers
+  remove: true             # delete all selected layers
 ```
 
 ## 1) Implicit add/create
@@ -87,17 +91,44 @@ Error behavior:
 - 0 matches: error `Layer not found for remove: "<name>"`.
 - >1 matches: error `Multiple layers matched for remove: "<name>"`.
 
+## 4) Selected target actions
+
+### `_selected.set`
+
+```yaml
+_selected:
+  set:
+    transform:
+      opacity: 50
+```
+
+Behavior:
+- Applies the patch to every selected layer in the active composition.
+- Fails when no layers are selected.
+
+### `_selected.remove`
+
+```yaml
+_selected:
+  remove: true
+```
+
+Behavior:
+- Removes all selected layers in the active composition.
+- Fails when no layers are selected.
+
 ## Validation rules
 
 - `_timeline.layers` remains optional.
 - `_timeline.set.layers` optional.
 - `_timeline.remove.layers` optional.
 - At least one of `layers`, `set.layers`, `remove.layers` must be present when `_timeline` exists.
+- `_selected.set` and `_selected.remove` are both optional, but one must be present if `_selected` exists.
 - Unknown keys under `_timeline`, `set`, or `remove` should fail validation.
 
 ## Non-goals for v1
 
-- Selector DSL (`_selected`, `_comp`, predicate matching).
+- Selector DSL beyond `_timeline/_selected` (`_comp`, predicate matching).
 - Replace vs merge conflict modes.
 - Batch transactional semantics across all actions.
 - Reorder/move/rename verbs.
@@ -106,7 +137,9 @@ Error behavior:
 
 1. `_timeline.layers` (create)
 2. `_timeline.set.layers` (update)
-3. `_timeline.remove.layers` (delete)
+3. `_selected.set` (selected-layer patch)
+4. `_timeline.remove.layers` (delete by name)
+5. `_selected.remove` (delete selected)
 
 Rationale:
 - Deterministic behavior in one pass.

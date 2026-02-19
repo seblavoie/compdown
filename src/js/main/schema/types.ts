@@ -705,7 +705,7 @@ export type Layer = z.infer<typeof LayerSchema>;
 
 // --- Timeline Actions ---
 
-export const LayerSetSchema = z
+export const LayerSetBaseSchema = z
   .object({
     name: z.string().min(1),
 
@@ -784,7 +784,9 @@ export const LayerSetSchema = z
     masks: z.array(MaskSchema).optional(),
     textAnimators: z.array(TextAnimatorSchema).optional(),
   })
-  .strict()
+  .strict();
+
+export const LayerSetSchema = LayerSetBaseSchema
   .refine(
     (layer) => Object.keys(layer).some((k) => k !== "name"),
     { message: "Layer set entry must include at least one property to update" }
@@ -811,6 +813,31 @@ export const TimelineRemoveSchema = z
     layers: z.array(LayerRemoveSchema).min(1),
   })
   .strict();
+
+export const SelectedSetSchema = LayerSetBaseSchema.omit({
+  name: true,
+  parent: true,
+}).refine(
+  (layer) => Object.keys(layer).length > 0,
+  { message: "_selected.set must include at least one property to update" }
+);
+
+export type SelectedSet = z.infer<typeof SelectedSetSchema>;
+
+export const SelectedSchema = z
+  .object({
+    set: SelectedSetSchema.optional(),
+    remove: z.literal(true).optional(),
+  })
+  .strict()
+  .refine(
+    (selected) => {
+      return Boolean(selected.set || selected.remove === true);
+    },
+    { message: "_selected must include at least one of: set, remove" }
+  );
+
+export type Selected = z.infer<typeof SelectedSchema>;
 
 // --- Essential Graphics ---
 
@@ -906,6 +933,7 @@ export type Timeline = z.infer<typeof TimelineSchema>;
 export const CompdownDocumentSchema = z
   .object({
     _timeline: TimelineSchema.optional(),
+    _selected: SelectedSchema.optional(),
     // Explicitly reject legacy top-level targeting keys.
     destination: z.never().optional(),
     layers: z.never().optional(),
@@ -921,13 +949,14 @@ export const CompdownDocumentSchema = z
           ((doc._timeline.layers && doc._timeline.layers.length > 0) ||
             (doc._timeline.set && doc._timeline.set.layers.length > 0) ||
             (doc._timeline.remove && doc._timeline.remove.layers.length > 0))) ||
+        doc._selected ||
         (doc.folders && doc.folders.length > 0) ||
         (doc.files && doc.files.length > 0) ||
         (doc.compositions && doc.compositions.length > 0)
       );
     },
     {
-      message: "Document must contain at least one of: _timeline, folders, files, compositions",
+      message: "Document must contain at least one of: _timeline, _selected, folders, files, compositions",
     }
   );
 

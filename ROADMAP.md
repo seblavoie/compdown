@@ -12,7 +12,7 @@ Tracking improvements and new features for the project.
 
 **Scope (Phase 1):**
 - Keep `_timeline` as the canonical selector for active comp timeline.
-- Add one additional explicit selector for existing context (to be finalized before implementation).
+- Add one additional explicit selector for existing context.
 - Ensure selector syntax is consistent and extensible for future `_selected`, named comp/layer selectors.
 - Keep error messages user-friendly and migration-safe.
 
@@ -54,5 +54,6 @@ Tracking improvements and new features for the project.
 ## Recently Completed
 
 - `_timeline` top-level block syntax for adding layers to active timeline.
+- `_selected` target support for selected-layer set/remove actions.
 - Removal of legacy `destination/layers` top-level format.
 - Parser/runtime/docs/test alignment for the new syntax.

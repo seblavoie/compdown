@@ -2,7 +2,7 @@ import { getActiveComp } from "./aeft-utils";
 import { createFolders } from "./creators/folder";
 import { importFiles } from "./creators/file";
 import { createComps } from "./creators/comp";
-import { createLayers, setLayers, removeLayers } from "./creators/layer";
+import { createLayers, setLayers, removeLayers, setSelectedLayers, removeSelectedLayers } from "./creators/layer";
 import { addEssentialGraphics } from "./creators/essentialGraphics";
 import { addMarkers } from "./creators/markers";
 import { readComp, collectFiles } from "./readers/comp";
@@ -102,6 +102,24 @@ export const createFromDocument = (
         throw new Error("_timeline.remove.layers requires an active composition timeline");
       }
       removeLayers(targetCompForRemove, doc._timeline.remove.layers);
+    }
+
+    // 10. _selected.set (patch all selected layers)
+    if (doc._selected && doc._selected.set) {
+      var targetCompForSelectedSet = getActiveComp();
+      if (!(targetCompForSelectedSet && targetCompForSelectedSet instanceof CompItem)) {
+        throw new Error("_selected.set requires an active composition timeline");
+      }
+      setSelectedLayers(targetCompForSelectedSet, doc._selected.set as any);
+    }
+
+    // 11. _selected.remove (delete all selected layers)
+    if (doc._selected && doc._selected.remove === true) {
+      var targetCompForSelectedRemove = getActiveComp();
+      if (!(targetCompForSelectedRemove && targetCompForSelectedRemove instanceof CompItem)) {
+        throw new Error("_selected.remove requires an active composition timeline");
+      }
+      removeSelectedLayers(targetCompForSelectedRemove);
     }
 
     return { created: stats };

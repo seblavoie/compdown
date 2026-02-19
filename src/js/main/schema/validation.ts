@@ -211,6 +211,13 @@ function preprocessParsedYaml(data: unknown): unknown {
     }
   }
 
+  if (obj._selected && typeof obj._selected === "object") {
+    const selectedObj = obj._selected as Record<string, unknown>;
+    if (selectedObj.set && typeof selectedObj.set === "object") {
+      preprocessLayerObject(selectedObj.set as Record<string, unknown>);
+    }
+  }
+
   return data;
 }
 

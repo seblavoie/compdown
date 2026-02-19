@@ -95,6 +95,28 @@ _timeline:
     expect(result.data!._timeline!.remove!.layers).toHaveLength(1);
   });
 
+  it("accepts _selected.set patch", () => {
+    const yaml = `
+_selected:
+  set:
+    transform:
+      opacity: 50
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!._selected!.set).toBeDefined();
+  });
+
+  it("accepts _selected.remove: true", () => {
+    const yaml = `
+_selected:
+  remove: true
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!._selected!.remove).toBe(true);
+  });
+
   // ---------------------------------------------------------------------------
   // validateYaml – YAML syntax errors
   // ---------------------------------------------------------------------------
@@ -255,6 +277,19 @@ _timeline: {}
     expect(
       result.errors.some((e) =>
         e.message.includes("_timeline must include at least one of")
+      )
+    ).toBe(true);
+  });
+
+  it("rejects _selected when no actions are provided", () => {
+    const yaml = `
+_selected: {}
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(false);
+    expect(
+      result.errors.some((e) =>
+        e.message.includes("_selected must include at least one of")
       )
     ).toBe(true);
   });
