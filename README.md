@@ -284,6 +284,7 @@ Each layer must have exactly one of `type`, `file`, or `composition`.
 | type      | string           | if no `file`/`composition` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape`, `audio` |
 | file      | string \| number | if no `type`/`composition` | References a file `id`                   |
 | composition | string         | if no `type`/`file` | References another composition by name   |
+| essentialProperties | object | no (composition layers only) | Override Essential Graphics controller values on this precomp instance |
 | transform | object           | no                  | Transform properties (see below)         |
 
 #### `_id` and `_extends` (inheritance)
@@ -830,6 +831,28 @@ essentialGraphics:
 > - Not all properties can be added to the Essential Graphics Panel. Compdown checks `canAddToMotionGraphicsTemplate()` and skips unsupported properties silently.
 > - `addToMotionGraphicsTemplateAs()` (custom names) requires After Effects CC 2019 (16.1) or later.
 > - Legacy Essential Graphics entries (created manually or without path encoding) export as name-only objects.
+
+#### `essentialProperties` (precomp instance overrides)
+
+Override Essential Graphics controller values by controller name on a composition layer instance.
+
+```yaml
+compositions:
+  - name: Master Edit
+    layers:
+      - name: Intro Instance
+        composition: Intro
+        essentialProperties:
+          Headline: "New headline"
+          Accent Color: [1, 0.4, 0.2]
+          Opacity: 85
+```
+
+Rules:
+- Only valid on layers that use `composition`.
+- Keys are controller names as shown in the Essential Graphics UI.
+- Each key must resolve to exactly one controller on that layer.
+- Missing or duplicate controller names produce errors.
 
 ## Architecture
 

@@ -113,6 +113,15 @@ export const EffectPropertyValueSchema = z.union([
 
 export type EffectPropertyValue = z.infer<typeof EffectPropertyValueSchema>;
 
+export const EssentialPropertyOverrideValueSchema = z.union([
+  z.number(),
+  z.boolean(),
+  z.string(),
+  z.array(z.number()),
+]);
+
+export type EssentialPropertyOverrideValue = z.infer<typeof EssentialPropertyOverrideValueSchema>;
+
 export const EffectSchema = z.object({
   name: z.string().min(1),
   matchName: z.string().optional(),
@@ -640,6 +649,10 @@ export const LayerSchema = z
 
     // Effects
     effects: z.array(EffectSchema).optional(),
+    // Essential Graphics instance overrides (precomp layers only)
+    essentialProperties: z
+      .record(z.string().min(1), EssentialPropertyOverrideValueSchema)
+      .optional(),
 
     // Layer Styles
     layerStyles: z.array(LayerStyleSchema).optional(),
@@ -699,6 +712,15 @@ export const LayerSchema = z
       return true;
     },
     { message: "Shape layers require a 'shapes' array with at least one shape" }
+  )
+  .refine(
+    (layer) => {
+      if (layer.essentialProperties && layer.composition === undefined) {
+        return false;
+      }
+      return true;
+    },
+    { message: "'essentialProperties' is only valid on layers with 'composition'" }
   );
 
 export type Layer = z.infer<typeof LayerSchema>;
@@ -780,6 +802,9 @@ export const LayerSetBaseSchema = z
     // Transform/effects/styles
     transform: TransformSchema,
     effects: z.array(EffectSchema).optional(),
+    essentialProperties: z
+      .record(z.string().min(1), EssentialPropertyOverrideValueSchema)
+      .optional(),
     layerStyles: z.array(LayerStyleSchema).optional(),
     masks: z.array(MaskSchema).optional(),
     textAnimators: z.array(TextAnimatorSchema).optional(),

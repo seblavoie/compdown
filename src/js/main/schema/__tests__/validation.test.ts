@@ -83,6 +83,20 @@ _timeline:
     expect(result.data!._timeline!.set!.layers).toHaveLength(1);
   });
 
+  it("accepts _timeline.set.layers with essentialProperties", () => {
+    const yaml = `
+_timeline:
+  set:
+    layers:
+      - name: Intro Instance
+        essentialProperties:
+          Headline: "New headline"
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect((result.data!._timeline!.set!.layers[0] as any).essentialProperties.Headline).toBe("New headline");
+  });
+
   it("accepts _timeline.remove.layers deletes", () => {
     const yaml = `
 _timeline:
@@ -653,6 +667,42 @@ compositions:
     expect(outerLayers[0].composition).toBe("Inner Comp");
     expect(outerLayers[0].file).toBeUndefined();
     expect(outerLayers[0].type).toBeUndefined();
+  });
+
+  it("validates composition layer essentialProperties overrides", () => {
+    const yaml = `
+compositions:
+  - name: Inner
+  - name: Outer
+    layers:
+      - name: Nested
+        composition: Inner
+        essentialProperties:
+          Headline: "New headline"
+          Opacity: 85
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const layer = result.data!.compositions![1].layers![0] as any;
+    expect(layer.essentialProperties["Headline"]).toBe("New headline");
+    expect(layer.essentialProperties["Opacity"]).toBe(85);
+  });
+
+  it("rejects essentialProperties on non-composition layers in YAML", () => {
+    const yaml = `
+compositions:
+  - name: Bad Comp
+    layers:
+      - name: Controller
+        type: null
+        essentialProperties:
+          Headline: "New headline"
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(false);
+    expect(
+      result.errors.some((e) => e.message.includes("essentialProperties"))
+    ).toBe(true);
   });
 
   it("rejects legacy comp key in YAML", () => {

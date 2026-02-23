@@ -29,7 +29,7 @@ export interface CompdownCompositionDocumentItem {
   color: string;
   folder?: string;
   layers?: any[];
-  essentialGraphics?: Array<string | { property: string; name?: string }>;
+  essentialGraphics?: Array<string | { property: string; name?: string; encodePathInName?: boolean }>;
   markers?: CompdownCompositionMarkerDocumentItem[];
 }
 

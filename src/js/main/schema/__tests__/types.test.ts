@@ -560,6 +560,32 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts essentialProperties on composition layers", () => {
+    const result = LayerSchema.safeParse({
+      name: "Nested",
+      composition: "Other Comp",
+      essentialProperties: {
+        Headline: "New headline",
+        Opacity: 85,
+      },
+    });
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects essentialProperties on non-composition layers", () => {
+    const result = LayerSchema.safeParse({
+      name: "Bad",
+      type: "null",
+      essentialProperties: {
+        Headline: "New headline",
+      },
+    });
+    expect(result.success).toBe(false);
+    expect(
+      result.error!.issues.some((i) => i.message.includes("essentialProperties"))
+    ).toBe(true);
+  });
+
   it("rejects legacy comp alias", () => {
     const result = LayerSchema.safeParse({
       name: "Nested",

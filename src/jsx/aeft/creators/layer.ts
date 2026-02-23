@@ -201,6 +201,7 @@ interface LayerDef {
   label?: number;
   transform?: TransformDef;
   effects?: EffectDef[];
+  essentialProperties?: { [controllerName: string]: number | boolean | string | number[] };
   // Layer styles
   layerStyles?: LayerStyleDef[];
   // Shape-specific
@@ -333,6 +334,72 @@ function boolToNum(val: any): any {
     return result;
   }
   return val;
+}
+
+function applyEssentialProperties(layer: Layer, overrides: { [controllerName: string]: any }): void {
+  var overridesGroup: PropertyGroup | null = null;
+  try {
+    overridesGroup = layer.property("ADBE Layer Overrides") as PropertyGroup;
+  } catch (e) {
+    overridesGroup = null;
+  }
+
+  if (!overridesGroup || overridesGroup.numProperties < 1) {
+    throw new Error(
+      'Layer "' + layer.name + '" has no Essential Graphics overrides. ' +
+      "Use 'essentialProperties' only on precomp layers with exposed controls."
+    );
+  }
+
+  for (var controllerName in overrides) {
+    if (!overrides.hasOwnProperty(controllerName)) continue;
+    if (!controllerName || controllerName.length === 0) {
+      throw new Error("Essential property controller name cannot be empty");
+    }
+
+    var match: Property | null = null;
+    var matchCount = 0;
+    for (var i = 1; i <= overridesGroup.numProperties; i++) {
+      var p = overridesGroup.property(i) as Property;
+      if (p && p.name === controllerName) {
+        match = p;
+        matchCount++;
+      }
+    }
+
+    if (matchCount === 0 || !match) {
+      throw new Error(
+        'Essential property controller "' + controllerName + '" not found on layer "' + layer.name + '"'
+      );
+    }
+
+    if (matchCount > 1) {
+      throw new Error(
+        'Essential property controller "' + controllerName + '" is ambiguous on layer "' + layer.name + '"'
+      );
+    }
+
+    var value = overrides[controllerName];
+    var currentValue: any = null;
+    try {
+      currentValue = match.value;
+    } catch (e) {
+      currentValue = null;
+    }
+
+    // Source Text-like controllers expect a TextDocument; allow simple string shorthand.
+    if (typeof value === "string" && currentValue && typeof currentValue === "object" && "text" in currentValue) {
+      try {
+        currentValue.text = value;
+        match.setValue(currentValue);
+        continue;
+      } catch (e) {
+        // Fallback to direct setValue below.
+      }
+    }
+
+    match.setValue(boolToNum(value));
+  }
 }
 
 /**
@@ -1040,6 +1107,10 @@ export const createLayers = (
       applyTextAnimators(newLayer as TextLayer, layerDef.textAnimators);
     }
 
+    if (layerDef.essentialProperties) {
+      applyEssentialProperties(newLayer, layerDef.essentialProperties);
+    }
+
     // Audio-only layers: ensure audio is enabled (file-based)
     if (layerDef.type === "audio") {
       try {
@@ -1316,6 +1387,9 @@ function applyLayerPatch(comp: CompItem, layer: Layer, layerDef: LayerDef): void
   }
   if (layerDef.textAnimators && layerDef.textAnimators.length > 0) {
     applyTextAnimators(layer as TextLayer, layerDef.textAnimators);
+  }
+  if (layerDef.essentialProperties) {
+    applyEssentialProperties(layer, layerDef.essentialProperties);
   }
 
   // Transform after parent assignment
