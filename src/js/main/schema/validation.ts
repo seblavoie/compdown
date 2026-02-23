@@ -24,6 +24,25 @@ class ExtendsResolutionError extends Error {
 }
 
 /**
+ * YAML forbids tab characters in indentation.
+ * Convert only leading indentation tabs to spaces, preserving tabs in content.
+ */
+function normalizeIndentationTabs(yamlText: string): string {
+  return yamlText
+    .split("\n")
+    .map((line) => {
+      const match = line.match(/^([ \t]+)/);
+      if (!match) return line;
+
+      const leading = match[1];
+      if (leading.indexOf("\t") === -1) return line;
+
+      return leading.replace(/\t/g, "  ") + line.slice(leading.length);
+    })
+    .join("\n");
+}
+
+/**
  * Try to find the YAML line number for a Zod error path.
  * Walks the path segments and searches for matching keys in the raw YAML text.
  */
@@ -404,10 +423,12 @@ function validateNoLegacyTimelineSyntax(yamlText: string, parsed: unknown): Vali
  * Parse and validate a YAML string against the Compdown schema.
  */
 export function validateYaml(yamlText: string): ValidationResult {
+  const normalizedYamlText = normalizeIndentationTabs(yamlText);
+
   // Step 1: Parse YAML
   let parsed: unknown;
   try {
-    parsed = yaml.load(yamlText);
+    parsed = yaml.load(normalizedYamlText);
   } catch (e) {
     const yamlError = e as yaml.YAMLException;
     return {
@@ -438,7 +459,7 @@ export function validateYaml(yamlText: string): ValidationResult {
         success: false,
         errors: [
           {
-            line: findLineForPath(yamlText, e.path),
+            line: findLineForPath(normalizedYamlText, e.path),
             message: e.message,
             path: e.path.map(String),
           },
@@ -459,7 +480,7 @@ export function validateYaml(yamlText: string): ValidationResult {
   }
 
   // Step 1.75: Reject removed legacy top-level syntax with a focused error.
-  const legacySyntaxErrors = validateNoLegacyTimelineSyntax(yamlText, parsed);
+  const legacySyntaxErrors = validateNoLegacyTimelineSyntax(normalizedYamlText, parsed);
   if (legacySyntaxErrors.length > 0) {
     return { success: false, errors: legacySyntaxErrors };
   }
@@ -473,7 +494,7 @@ export function validateYaml(yamlText: string): ValidationResult {
 
   // Step 3: Map Zod errors to line numbers
   const errors: ValidationError[] = result.error.issues.map((issue) => ({
-    line: findLineForPath(yamlText, issue.path),
+    line: findLineForPath(normalizedYamlText, issue.path),
     message: issue.message,
     path: issue.path.map(String),
   }));

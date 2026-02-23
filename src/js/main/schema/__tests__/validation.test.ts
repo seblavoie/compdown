@@ -142,6 +142,13 @@ compositions:
     expect(result.errors.length).toBeGreaterThan(0);
   });
 
+  it("accepts tab-indented YAML by normalizing indentation tabs", () => {
+    const yaml = "compositions:\n\t- name: Main\n\t  layers:\n\t    - name: Title\n\t      type: text\n\t      text: Hello\n";
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers).toHaveLength(1);
+  });
+
   // ---------------------------------------------------------------------------
   // validateYaml – empty / null documents
   // ---------------------------------------------------------------------------
