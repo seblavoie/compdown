@@ -13,6 +13,16 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
+class ExtendsResolutionError extends Error {
+  path: (string | number)[];
+
+  constructor(message: string, path: (string | number)[]) {
+    super(message);
+    this.name = "ExtendsResolutionError";
+    this.path = path;
+  }
+}
+
 /**
  * Try to find the YAML line number for a Zod error path.
  * Walks the path segments and searches for matching keys in the raw YAML text.
@@ -122,6 +132,130 @@ function normalizeEffectPropertyColors(obj: Record<string, unknown>): void {
   }
 }
 
+function isObject(value: unknown): value is Record<string, unknown> {
+  return value !== null && typeof value === "object" && !Array.isArray(value);
+}
+
+function cloneValue<T>(value: T): T {
+  if (Array.isArray(value)) {
+    return value.map((item) => cloneValue(item)) as T;
+  }
+  if (!isObject(value)) {
+    return value;
+  }
+
+  const cloned: Record<string, unknown> = {};
+  for (const key of Object.keys(value)) {
+    cloned[key] = cloneValue(value[key]);
+  }
+  return cloned as T;
+}
+
+function mergeObjects(
+  parent: Record<string, unknown>,
+  child: Record<string, unknown>
+): Record<string, unknown> {
+  const merged = cloneValue(parent);
+
+  for (const key of Object.keys(child)) {
+    if (key === "_id" || key === "_extends") continue;
+
+    const parentValue = merged[key];
+    const childValue = child[key];
+    if (isObject(parentValue) && isObject(childValue)) {
+      merged[key] = mergeObjects(parentValue, childValue);
+      continue;
+    }
+
+    merged[key] = cloneValue(childValue);
+  }
+
+  return merged;
+}
+
+function resolveExtendsInCollection(
+  collection: unknown[],
+  collectionPath: (string | number)[],
+  label: "composition" | "layer"
+): unknown[] {
+  const idToIndex: Record<string, number> = {};
+  for (let i = 0; i < collection.length; i++) {
+    const item = collection[i];
+    if (!isObject(item)) continue;
+    if (item._id === undefined) continue;
+
+    if (typeof item._id !== "string" || item._id.trim() === "") {
+      throw new ExtendsResolutionError(
+        `${label} _id must be a non-empty string`,
+        collectionPath.concat([i, "_id"])
+      );
+    }
+
+    if (idToIndex[item._id] !== undefined) {
+      throw new ExtendsResolutionError(
+        `Duplicate ${label} _id '${item._id}'`,
+        collectionPath.concat([i, "_id"])
+      );
+    }
+
+    idToIndex[item._id] = i;
+  }
+
+  const cache: Array<Record<string, unknown> | null> = new Array(collection.length);
+  const visiting: Record<number, true> = {};
+
+  const resolveAtIndex = (index: number): Record<string, unknown> => {
+    if (cache[index]) return cloneValue(cache[index]!);
+    if (visiting[index]) {
+      throw new ExtendsResolutionError(
+        `Circular _extends detected in ${label}s`,
+        collectionPath.concat([index, "_extends"])
+      );
+    }
+
+    const rawItem = collection[index];
+    if (!isObject(rawItem)) {
+      throw new ExtendsResolutionError(
+        `${label} entry must be an object`,
+        collectionPath.concat([index])
+      );
+    }
+
+    visiting[index] = true;
+
+    let resolvedBase: Record<string, unknown> = {};
+    if (rawItem._extends !== undefined) {
+      if (typeof rawItem._extends !== "string" || rawItem._extends.trim() === "") {
+        throw new ExtendsResolutionError(
+          `${label} _extends must be a non-empty string`,
+          collectionPath.concat([index, "_extends"])
+        );
+      }
+
+      const baseIndex = idToIndex[rawItem._extends];
+      if (baseIndex === undefined) {
+        throw new ExtendsResolutionError(
+          `Unknown ${label} _extends target '${rawItem._extends}'`,
+          collectionPath.concat([index, "_extends"])
+        );
+      }
+
+      resolvedBase = resolveAtIndex(baseIndex);
+    }
+
+    const merged = mergeObjects(resolvedBase, rawItem);
+    cache[index] = merged;
+    delete visiting[index];
+    return cloneValue(merged);
+  };
+
+  const resolved: unknown[] = [];
+  for (let i = 0; i < collection.length; i++) {
+    resolved.push(resolveAtIndex(i));
+  }
+  return resolved;
+}
+
 /**
  * Normalize known layer-level quirks and color properties.
  */
@@ -167,14 +301,32 @@ function preprocessParsedYaml(data: unknown): unknown {
 
   const obj = data as Record<string, unknown>;
 
+  // Resolve composition-level inheritance first.
+  if (Array.isArray(obj.compositions)) {
+    obj.compositions = resolveExtendsInCollection(
+      obj.compositions as unknown[],
+      ["compositions"],
+      "composition"
+    );
+  }
+
   // Recurse into compositions and layers
   if (Array.isArray(obj.compositions)) {
-    for (const comp of obj.compositions) {
+    for (let compIndex = 0; compIndex < obj.compositions.length; compIndex++) {
+      const comp = obj.compositions[compIndex];
       if (comp && typeof comp === "object") {
         const compObj = comp as Record<string, unknown>;
 
         // Handle color properties on comp
         normalizeColorProperties(compObj);
+
+        if (Array.isArray(compObj.layers)) {
+          compObj.layers = resolveExtendsInCollection(
+            compObj.layers as unknown[],
+            ["compositions", compIndex, "layers"],
+            "layer"
+          );
+        }
 
         // Process layers
         if (Array.isArray(compObj.layers)) {
@@ -191,6 +343,13 @@ function preprocessParsedYaml(data: unknown): unknown {
   // Process top-level timeline layers
   if (obj._timeline && typeof obj._timeline === "object") {
     const timelineObj = obj._timeline as Record<string, unknown>;
+    if (Array.isArray(timelineObj.layers)) {
+      timelineObj.layers = resolveExtendsInCollection(
+        timelineObj.layers as unknown[],
+        ["_timeline", "layers"],
+        "layer"
+      );
+    }
     if (Array.isArray(timelineObj.layers)) {
       for (const layer of timelineObj.layers) {
         if (layer && typeof layer === "object") {
@@ -271,7 +430,33 @@ export function validateYaml(yamlText: string): ValidationResult {
   }
 
   // Step 1.5: Normalize YAML quirks (null literals, numeric colors)
-  preprocessParsedYaml(parsed);
+  try {
+    preprocessParsedYaml(parsed);
+  } catch (e) {
+    if (e instanceof ExtendsResolutionError) {
+      return {
+        success: false,
+        errors: [
+          {
+            line: findLineForPath(yamlText, e.path),
+            message: e.message,
+            path: e.path.map(String),
+          },
+        ],
+      };
+    }
+
+    return {
+      success: false,
+      errors: [
+        {
+          line: null,
+          message: e instanceof Error ? e.message : "Invalid document",
+          path: [],
+        },
+      ],
+    };
+  }
 
   // Step 1.75: Reject removed legacy top-level syntax with a focused error.
   const legacySyntaxErrors = validateNoLegacyTimelineSyntax(yamlText, parsed);

@@ -253,6 +253,8 @@ Notes:
 
 | Property    | Type   | Required | Default    | Description            |
 | ----------- | ------ | -------- | ---------- | ---------------------- |
+| _id         | string | no       |            | Reusable composition template id |
+| _extends    | string | no       |            | Inherit from a composition `_id` in the same `compositions` array |
 | name        | string | yes      |            | Composition name       |
 | width       | int    | no       | 1920       | Width in pixels        |
 | height      | int    | no       | 1080       | Height in pixels       |
@@ -276,11 +278,55 @@ Each layer must have exactly one of `type`, `file`, or `composition`.
 
 | Property  | Type             | Required            | Description                              |
 | --------- | ---------------- | ------------------- | ---------------------------------------- |
+| _id       | string           | no                  | Reusable layer template id (within the same layer array) |
+| _extends  | string           | no                  | Inherit from a layer `_id` in the same layer array |
 | name      | string           | yes                 | Layer name                               |
 | type      | string           | if no `file`/`composition` | `solid`, `null`, `adjustment`, `text`, `camera`, `light`, `shape`, `audio` |
 | file      | string \| number | if no `type`/`composition` | References a file `id`                   |
 | composition | string         | if no `type`/`file` | References another composition by name   |
 | transform | object           | no                  | Transform properties (see below)         |
+
+#### `_id` and `_extends` (inheritance)
+
+Use `_id` to define a reusable base object, then `_extends` to inherit and override fields.
+
+Rules:
+- Works for `compositions`, `compositions[].layers`, and `_timeline.layers`.
+- `_extends` must point to an existing `_id` in the same array.
+- Arrays are replaced, not merged.
+- Objects are merged deeply.
+- Circular `_extends` chains fail validation.
+- Duplicate `_id` values fail validation.
+
+Composition example:
+
+```yaml
+compositions:
+  - _id: sceneBase
+    name: Scene-01
+    duration: 30
+    framerate: 24
+    color: ff8000
+
+  - _extends: sceneBase
+    name: Scene-02
+```
+
+Layer example:
+
+```yaml
+_timeline:
+  layers:
+    - _id: textBase
+      name: Base
+      type: text
+      text: Hello
+      fontSize: 96
+
+    - _extends: textBase
+      name: Title
+      text: World
+```
 
 ##### Timing and placement
 

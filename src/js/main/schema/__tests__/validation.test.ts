@@ -295,6 +295,123 @@ _selected: {}
   });
 
   // ---------------------------------------------------------------------------
+  // _extends inheritance
+  // ---------------------------------------------------------------------------
+
+  it("resolves _extends for compositions using _id", () => {
+    const yaml = `
+compositions:
+  - _id: sceneBase
+    name: Scene-01
+    duration: 30
+    framerate: 24
+    color: ff8000
+  - _extends: sceneBase
+    name: Scene-02
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions).toHaveLength(2);
+    expect(result.data!.compositions![1]).toMatchObject({
+      name: "Scene-02",
+      duration: 30,
+      framerate: 24,
+      color: "ff8000",
+    });
+  });
+
+  it("resolves _extends for layers inside a composition", () => {
+    const yaml = `
+compositions:
+  - name: Main
+    layers:
+      - _id: nullBase
+        name: Base
+        type: null
+        enabled: false
+      - _extends: nullBase
+        name: Controller
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    const layers = result.data!.compositions![0].layers!;
+    expect(layers).toHaveLength(2);
+    expect(layers[1]).toMatchObject({
+      name: "Controller",
+      type: "null",
+      enabled: false,
+    });
+  });
+
+  it("resolves _extends for layers inside _timeline.layers", () => {
+    const yaml = `
+_timeline:
+  layers:
+    - _id: textBase
+      name: Base
+      type: text
+      text: Hello
+      fontSize: 96
+    - _extends: textBase
+      name: Title
+      text: World
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!._timeline!.layers![1]).toMatchObject({
+      name: "Title",
+      type: "text",
+      text: "World",
+      fontSize: 96,
+    });
+  });
+
+  it("rejects unknown _extends targets", () => {
+    const yaml = `
+compositions:
+  - _extends: missingBase
+    name: Scene-02
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("Unknown composition _extends target"))).toBe(true);
+  });
+
+  it("rejects duplicate _id values", () => {
+    const yaml = `
+_timeline:
+  layers:
+    - _id: base
+      name: A
+      type: null
+    - _id: base
+      name: B
+      type: null
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("Duplicate layer _id"))).toBe(true);
+  });
+
+  it("rejects circular _extends chains", () => {
+    const yaml = `
+_timeline:
+  layers:
+    - _id: a
+      _extends: b
+      name: A
+      type: null
+    - _id: b
+      _extends: a
+      name: B
+      type: null
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(false);
+    expect(result.errors.some((e) => e.message.includes("Circular _extends detected"))).toBe(true);
+  });
+
+  // ---------------------------------------------------------------------------
   // Integration: full round-trip
   // ---------------------------------------------------------------------------
 
