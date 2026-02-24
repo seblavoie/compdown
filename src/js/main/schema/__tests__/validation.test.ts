@@ -579,6 +579,31 @@ compositions:
     expect(result.data!.compositions![0].layers![0].color).toBe("FF0000");
   });
 
+  it("accepts hash-prefixed layer color and normalizes it", () => {
+    const yaml = `
+compositions:
+  - name: Test
+    layers:
+      - name: Red
+        type: solid
+        color: "#FF0000"
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].layers![0].color).toBe("FF0000");
+  });
+
+  it("accepts hash-prefixed comp color and normalizes it", () => {
+    const yaml = `
+compositions:
+  - name: Test
+    color: "#1a1a2e"
+`;
+    const result = validateYaml(yaml);
+    expect(result.success).toBe(true);
+    expect(result.data!.compositions![0].color).toBe("1a1a2e");
+  });
+
   it("handles color-like property names on layers", () => {
     // Future-proofing: if we add fillColor, strokeColor etc. to layers
     // Note: effect properties use RGB arrays [r,g,b], not hex strings

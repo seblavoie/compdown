@@ -853,6 +853,7 @@ Rules:
 - Keys are controller names as shown in the Essential Graphics UI.
 - Each key must resolve to exactly one controller on that layer.
 - Missing or duplicate controller names produce errors.
+- Color controllers accept hex shorthand like `ff0000` (or `#ff0000`) and convert to AE RGB arrays.
 
 ## Architecture
 

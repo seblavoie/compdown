@@ -102,6 +102,13 @@ function normalizeColor(value: unknown): string | unknown {
   if (typeof value === "number") {
     return value.toString().padStart(6, "0");
   }
+  if (typeof value === "string") {
+    const trimmed = value.trim();
+    const match = trimmed.match(/^#?([0-9a-fA-F]{6})$/);
+    if (match) {
+      return match[1];
+    }
+  }
   return value;
 }
 

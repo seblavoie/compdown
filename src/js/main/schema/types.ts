@@ -161,7 +161,7 @@ export type LayerStyle = z.infer<typeof LayerStyleSchema>;
 
 export const ShapeFillSchema = z.object({
   color: z.union([
-    z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF5500)"),
+    z.string().regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF5500)"),
     z.array(ColorKeyframeSchema).min(2),
   ]),
   opacity: z.union([
@@ -174,7 +174,7 @@ export type ShapeFill = z.infer<typeof ShapeFillSchema>;
 
 export const ShapeStrokeSchema = z.object({
   color: z.union([
-    z.string().regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)"),
+    z.string().regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)"),
     z.array(ColorKeyframeSchema).min(2),
   ]),
   width: z.union([
@@ -569,7 +569,7 @@ export const LayerSchema = z
     height: z.number().int().positive().optional(),
     color: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF0000)")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FF0000)")
       .optional(),
 
     // Text-specific
@@ -578,11 +578,11 @@ export const LayerSchema = z
     font: z.string().optional(),
     fillColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FFFFFF)")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FFFFFF)")
       .optional(),
     strokeColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)")
       .optional(),
     strokeWidth: z.number().min(0).optional(),
     tracking: z.number().optional(),
@@ -602,7 +602,7 @@ export const LayerSchema = z
     intensity: z.number().min(0).optional(),
     lightColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color")
       .optional(),
     coneAngle: z.number().min(0).max(180).optional(),
     coneFeather: z.number().min(0).max(100).optional(),
@@ -742,11 +742,11 @@ export const LayerSetBaseSchema = z
     font: z.string().optional(),
     fillColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FFFFFF)")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. FFFFFF)")
       .optional(),
     strokeColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color (e.g. 000000)")
       .optional(),
     strokeWidth: z.number().min(0).optional(),
     tracking: z.number().optional(),
@@ -764,7 +764,7 @@ export const LayerSetBaseSchema = z
     intensity: z.number().min(0).optional(),
     lightColor: z
       .string()
-      .regex(/^[0-9a-fA-F]{6}$/, "Must be a 6-character hex color")
+      .regex(/^#?[0-9a-fA-F]{6}$/, "Must be a 6-character hex color")
       .optional(),
     coneAngle: z.number().min(0).max(180).optional(),
     coneFeather: z.number().min(0).max(100).optional(),
@@ -901,7 +901,7 @@ export const CompSchema = z.object({
   pixelAspect: z.number().positive().default(1),
   color: z
     .string()
-    .regex(/^[0-9a-fA-F]{6}$/)
+    .regex(/^#?[0-9a-fA-F]{6}$/)
     .default("000000"),
   folder: z.string().optional(),
   layers: z.array(LayerSchema).optional(),

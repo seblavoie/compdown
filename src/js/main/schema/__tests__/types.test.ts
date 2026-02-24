@@ -486,6 +486,15 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts a solid layer with hash-prefixed color", () => {
+    const result = LayerSchema.safeParse({
+      name: "Red Solid",
+      type: "solid",
+      color: "#FF0000",
+    });
+    expect(result.success).toBe(true);
+  });
+
   it("accepts a null layer", () => {
     const result = LayerSchema.safeParse({
       name: "Null 1",
@@ -673,14 +682,14 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects invalid fill color format", () => {
+  it("accepts hash-prefixed fill color format", () => {
     const result = LayerSchema.safeParse({
       name: "Text",
       type: "text",
       text: "Hello",
       fillColor: "#FF0000",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("accepts a camera layer", () => {
@@ -777,13 +786,13 @@ describe("LayerSchema", () => {
     expect(result.success).toBe(false);
   });
 
-  it("rejects a hex color with # prefix", () => {
+  it("accepts a hex color with # prefix", () => {
     const result = LayerSchema.safeParse({
       name: "Solid",
       type: "solid",
       color: "#FF0000",
     });
-    expect(result.success).toBe(false);
+    expect(result.success).toBe(true);
   });
 
   it("rejects negative inPoint", () => {
@@ -2001,6 +2010,14 @@ describe("CompSchema", () => {
       pixelAspect: 1.5,
       color: "112233",
     });
+  });
+
+  it("accepts hash-prefixed comp color", () => {
+    const result = CompSchema.safeParse({
+      name: "Custom Comp",
+      color: "#112233",
+    });
+    expect(result.success).toBe(true);
   });
 
   it("rejects a comp with no name", () => {

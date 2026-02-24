@@ -336,6 +336,19 @@ function boolToNum(val: any): any {
   return val;
 }
 
+function parseHexColorToRgb(value: any): number[] | null {
+  if (typeof value !== "string") return null;
+  var trimmed = value.replace(/^\s+|\s+$/g, "");
+  var match = trimmed.match(/^#?([0-9a-fA-F]{6})$/);
+  if (!match) return null;
+
+  var hex = match[1];
+  var r = parseInt(hex.substring(0, 2), 16) / 255;
+  var g = parseInt(hex.substring(2, 4), 16) / 255;
+  var b = parseInt(hex.substring(4, 6), 16) / 255;
+  return [r, g, b];
+}
+
 function applyEssentialProperties(layer: Layer, overrides: { [controllerName: string]: any }): void {
   var overridesGroup: PropertyGroup | null = null;
   try {
@@ -395,6 +408,24 @@ function applyEssentialProperties(layer: Layer, overrides: { [controllerName: st
         continue;
       } catch (e) {
         // Fallback to direct setValue below.
+      }
+    }
+
+    // Color-like controllers in EGP use RGB arrays; accept hex shorthand.
+    if (typeof value === "string" && currentValue instanceof Array && currentValue.length === 3) {
+      var isNormalizedRgb = true;
+      for (var c = 0; c < 3; c++) {
+        if (typeof currentValue[c] !== "number" || currentValue[c] < 0 || currentValue[c] > 1) {
+          isNormalizedRgb = false;
+          break;
+        }
+      }
+      if (isNormalizedRgb) {
+        var rgb = parseHexColorToRgb(value);
+        if (rgb) {
+          match.setValue(rgb);
+          continue;
+        }
       }
     }
 
